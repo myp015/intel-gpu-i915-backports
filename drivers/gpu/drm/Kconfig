@@ -208,14 +208,14 @@ config DRM_BUDDY
 	  A page based buddy allocator
 
 config DRM_VRAM_HELPER
-	tristate
+	tristate "VRAM helper for backports (ainas)"
 	depends on m
 	depends on DRM
 	help
 	  Helpers for VRAM memory management
 
 config DRM_TTM_HELPER
-	tristate
+	tristate "TTM helper for backports (ainas)"
 	depends on m
 	depends on DRM
 	select DRM_TTM
