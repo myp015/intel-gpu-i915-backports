@@ -1027,8 +1027,8 @@ static void drm_vram_mm_cleanup(struct drm_vram_mm *vmm)
  * Helpers for integration with struct drm_device
  */
 
-static struct drm_vram_mm *drm_vram_helper_alloc_mm(struct drm_device *dev, uint64_t vram_base,
-						    size_t vram_size)
+struct drm_vram_mm *drm_vram_helper_alloc_mm(struct drm_device *dev, uint64_t vram_base,
+					    size_t vram_size)
 {
 	int ret;
 
@@ -1050,8 +1050,9 @@ err_kfree:
 	dev->vram_mm = NULL;
 	return ERR_PTR(ret);
 }
+EXPORT_SYMBOL(drm_vram_helper_alloc_mm);
 
-static void drm_vram_helper_release_mm(struct drm_device *dev)
+void drm_vram_helper_release_mm(struct drm_device *dev)
 {
 	if (!dev->vram_mm)
 		return;
@@ -1060,6 +1061,7 @@ static void drm_vram_helper_release_mm(struct drm_device *dev)
 	kfree(dev->vram_mm);
 	dev->vram_mm = NULL;
 }
+EXPORT_SYMBOL(drm_vram_helper_release_mm);
 
 static void drm_vram_mm_release(struct drm_device *dev, void *ptr)
 {
@@ -1156,6 +1158,52 @@ drm_vram_helper_mode_valid(struct drm_device *dev,
 	return drm_vram_helper_mode_valid_internal(dev, mode, max_bpp);
 }
 EXPORT_SYMBOL(drm_vram_helper_mode_valid);
+
+/*
+ * ainas compat shim（Task#170）：为旧代显示驱动（bochs-drm 等）在 update 新 DRM
+ * 栈下提供缺失符号。函数按新 API 实现，仅补导出，不改任何既有行为。
+ * 本文件仅在 CPTCFG_DRM_VRAM_HELPER=m（cks makei915 构建期注入）时被编译；
+ * 主流程（defconfig-drm 不开 DRM_VRAM_HELPER）产物不受影响。
+ */
+int drm_gem_vram_driver_dumb_mmap_offset(struct drm_file *file,
+					 struct drm_device *dev,
+					 uint32_t handle, uint64_t *offset)
+{
+	struct drm_gem_object *gem;
+	struct drm_gem_vram_object *gbo;
+	s64 vram_offset;
+
+	gem = drm_gem_object_lookup(file, handle);
+	if (!gem)
+		return -ENOENT;
+
+	gbo = drm_gem_vram_of_gem(gem);
+	vram_offset = drm_gem_vram_offset(gbo);
+	if (vram_offset < 0) {
+		drm_gem_object_put(gem);
+		return (int)vram_offset;
+	}
+
+	*offset = (uint64_t)vram_offset;
+
+	drm_gem_object_put(gem);
+
+	return 0;
+}
+EXPORT_SYMBOL(drm_gem_vram_driver_dumb_mmap_offset);
+
+/*
+ * compat shim：backports 栈未启用 DRM_FBDEV_EMULATION（Kconfig 无 config FB），
+ * 无法提供真实 fbdev 控制台。此处仅导出符号让旧代显示驱动（bochs-drm 等）在
+ * update 新栈下链接成功；DSM 为无头服务器，不需要 fbdev 控制台。
+ */
+void drm_fbdev_generic_setup(struct drm_device *dev, unsigned int preferred_bpp)
+{
+	/* no-op：见上方说明。 */
+	(void)dev;
+	(void)preferred_bpp;
+}
+EXPORT_SYMBOL(drm_fbdev_generic_setup);
 
 MODULE_DESCRIPTION("DRM VRAM memory-management helpers");
 MODULE_LICENSE("GPL");
