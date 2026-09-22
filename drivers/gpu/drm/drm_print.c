@@ -328,7 +328,11 @@ EXPORT_SYMBOL(___drm_dbg);
  * __drm_dbg(enum drm_debug_category, ...)，root 编译的显示驱动
  * （如 bochs-drm）引用此符号；本 backports 栈只导出带 struct _ddebug*
  * 参数的 ___drm_dbg。此处保留旧签名，使 update-active 覆盖后旧模块可解析。
+ * 注意：drm-include/drm/drm_print.h 将 __drm_dbg 定义为函数式宏（映射到
+ * ___drm_dbg(NULL,...)），定义同名函数前必须先 #undef，否则宏展开函数定义头
+ * 会产生语法错误（stddef.h NULL 处报错，编译中断）。
  */
+#undef __drm_dbg
 void __drm_dbg(enum drm_debug_category category, const char *format, ...)
 {
 	struct va_format vaf;
