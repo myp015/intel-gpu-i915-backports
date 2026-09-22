@@ -1012,6 +1012,7 @@ static int drm_vram_mm_init(struct drm_vram_mm *vmm, struct drm_device *dev,
 	 */
 	if (!vma_manager) {
 		drm_vma_offset_manager_init(&vmm->fallback_vma_manager,
+					    DRM_FILE_PAGE_OFFSET_START,
 					    DRM_FILE_PAGE_OFFSET_SIZE);
 		vma_manager = &vmm->fallback_vma_manager;
 	}
