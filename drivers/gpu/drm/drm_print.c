@@ -323,6 +323,31 @@ void ___drm_dbg(struct _ddebug *desc, enum drm_debug_category category, const ch
 }
 EXPORT_SYMBOL(___drm_dbg);
 
+/*
+ * 兼容旧代（root）DRM 栈的导出：root 栈 drm_dbg() 宏映射到
+ * __drm_dbg(enum drm_debug_category, ...)，root 编译的显示驱动
+ * （如 bochs-drm）引用此符号；本 backports 栈只导出带 struct _ddebug*
+ * 参数的 ___drm_dbg。此处保留旧签名，使 update-active 覆盖后旧模块可解析。
+ */
+void __drm_dbg(enum drm_debug_category category, const char *format, ...)
+{
+	struct va_format vaf;
+	va_list args;
+
+	if (!__drm_debug_enabled(category))
+		return;
+
+	va_start(args, format);
+	vaf.fmt = format;
+	vaf.va = &args;
+
+	printk(KERN_DEBUG "[" DRM_NAME ":%ps] %pV",
+	       __builtin_return_address(0), &vaf);
+
+	va_end(args);
+}
+EXPORT_SYMBOL(__drm_dbg);
+
 void __drm_err(const char *format, ...)
 {
 	struct va_format vaf;
