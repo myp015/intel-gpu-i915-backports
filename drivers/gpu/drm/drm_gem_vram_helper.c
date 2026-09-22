@@ -998,13 +998,27 @@ static int drm_vram_mm_init(struct drm_vram_mm *vmm, struct drm_device *dev,
 			    uint64_t vram_base, size_t vram_size)
 {
 	int ret;
+	struct drm_vma_offset_manager *vma_manager = dev->vma_offset_manager;
 
 	vmm->vram_base = vram_base;
 	vmm->vram_size = vram_size;
 
+	/*
+	 * ainas compat（Task#179）：旧代显示驱动（bochs_drm 等，按 root 5.10
+	 * 头编译）在 update/ 新 DRM 栈下创建的 drm_device，其 vma_offset_manager
+	 * 可能为 NULL（跨栈 DRIVER_* 位/结构布局不一致，drm_gem_init 未初始化该
+	 * 字段），ttm_device_init 会 WARN_ON(vma_manager == NULL) 刷屏。此处用
+	 * 内嵌 fallback manager 兜底，仅让 TTM VRAM mm 正常初始化并消除 WARN。
+	 */
+	if (!vma_manager) {
+		drm_vma_offset_manager_init(&vmm->fallback_vma_manager,
+					    DRM_FILE_PAGE_OFFSET_SIZE);
+		vma_manager = &vmm->fallback_vma_manager;
+	}
+
 	ret = ttm_device_init(&vmm->bdev, &bo_driver, dev->dev,
 				 dev->anon_inode->i_mapping,
-				 dev->vma_offset_manager,
+				 vma_manager,
 				 false, true);
 	if (ret)
 		return ret;

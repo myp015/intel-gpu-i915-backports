@@ -8,6 +8,7 @@
 #include <drm/drm_gem_ttm_helper.h>
 #include <drm/drm_ioctl.h>
 #include <drm/drm_modes.h>
+#include <drm/drm_vma_manager.h>
 #include <drm/ttm/ttm_bo.h>
 #include <drm/ttm/ttm_placement.h>
 
@@ -185,6 +186,16 @@ struct drm_vram_mm {
 	size_t vram_size;
 
 	struct ttm_device bdev;
+
+	/*
+	 * ainas compat（Task#179）：旧代显示驱动（bochs_drm 等）在 update/ 新
+	 * DRM 栈下创建的 drm_device，其 vma_offset_manager 可能为 NULL（root
+	 * 旧驱动按 5.10 头编译、update 栈按 backports 头编译，DRIVER_* 位/
+	 * 结构布局不一致导致 drm_gem_init 未初始化该字段）。drm_vram_mm_init
+	 * 在 dev->vma_offset_manager 为 NULL 时用此内嵌 manager 兜底，消除
+	 * ttm_device_init 的 WARN_ON(vma_manager == NULL) 刷屏。
+	 */
+	struct drm_vma_offset_manager fallback_vma_manager;
 };
 
 /**
