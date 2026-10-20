@@ -198,6 +198,8 @@ int amdgpu_user_partt_mode = AMDGPU_AUTO_COMPUTE_PARTITION_MODE;
 
 static void amdgpu_drv_delayed_reset_work_handler(struct work_struct *work);
 
+/* Task#202：dyndbg classmap 是 6.0 引入的内核接口 */
+#ifdef BPM_DECLARE_DYNDBG_CLASSMAP_AVAILABLE
 DECLARE_DYNDBG_CLASSMAP(drm_debug_classes, DD_CLASS_TYPE_DISJOINT_BITS, 0,
 			"DRM_UT_CORE",
 			"DRM_UT_DRIVER",
@@ -209,6 +211,7 @@ DECLARE_DYNDBG_CLASSMAP(drm_debug_classes, DD_CLASS_TYPE_DISJOINT_BITS, 0,
 			"DRM_UT_LEASE",
 			"DRM_UT_DP",
 			"DRM_UT_DRMRES");
+#endif
 
 struct amdgpu_mgpu_info mgpu_info = {
 	.mutex = __MUTEX_INITIALIZER(mgpu_info.mutex),
@@ -2915,7 +2918,12 @@ static struct pci_driver amdgpu_kms_pci_driver = {
 	.shutdown = amdgpu_pci_shutdown,
 	.driver.pm = &amdgpu_pm_ops,
 	.err_handler = &amdgpu_pci_err_handler,
+	/* Task#202：6.2 起 struct pci_driver 的 groups 改名 dev_groups */
+#if LINUX_VERSION_IS_GEQ(6,2,0)
 	.dev_groups = amdgpu_sysfs_groups,
+#else
+	.groups = amdgpu_sysfs_groups,
+#endif
 };
 
 static int __init amdgpu_init(void)
