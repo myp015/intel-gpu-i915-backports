@@ -841,7 +841,13 @@ int amdgpu_acpi_smart_shift_update(struct drm_device *dev, enum amdgpu_ss ss_sta
 	return r;
 }
 
-#ifdef CONFIG_ACPI_NUMA
+/*
+ * Task#202：DSM 5.10 的部分平台（如 epyc7002-7.4）配置为 ACPI_NUMA=y 但 NUMA=n，
+ * 此时 NODE_DATA(nid) 展开为未导出的全局变量 contig_page_data，模块无法解析
+ * （modpost 只会告警，加载时报 Unknown symbol）。非 NUMA 内核上这段 NUMA 信息
+ * 本来就没有意义，因此把门控收紧为「同时开启 NUMA」。
+ */
+#if defined(CONFIG_ACPI_NUMA) && defined(CONFIG_NUMA)
 static inline uint64_t amdgpu_acpi_get_numa_size(int nid)
 {
 	/* This is directly using si_meminfo_node implementation as the
@@ -904,7 +910,7 @@ static struct amdgpu_numa_info *amdgpu_acpi_get_numa_info(uint32_t pxm)
 static acpi_status amdgpu_acpi_get_node_id(acpi_handle handle,
 				    struct amdgpu_numa_info **numa_info)
 {
-#ifdef CONFIG_ACPI_NUMA
+#if defined(CONFIG_ACPI_NUMA) && defined(CONFIG_NUMA)
 	u64 pxm;
 	acpi_status status;
 
