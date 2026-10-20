@@ -101,5 +101,44 @@ rb_find(const void *key, const struct rb_root *tree,
         return NULL;
 }
 
+/*
+ * Task#202：rb_add_cached() 来自 2d24dd5798d0「rbtree: Add generic add and
+ * find helpers」。上游把 rb_find_add/rb_find 补在下面，但漏了它；6.5 的
+ * drm/gpu 调度器（sched_main.c）要用，epyc7002-7.1 的 5.10.55 内核头没有
+ * （7.2+ 群晖回填过，dsm_linux 里有），实测报：
+ *   sched_main.c:112: implicit declaration of function 'rb_add_cached'
+ * 和 rb_find_add 一样用 LINUX_I915_BACKPORT() 重命名，内核自带时不冲突。
+ */
+#define rb_add_cached LINUX_I915_BACKPORT(rb_add_cached)
+/**
+ * rb_add_cached() - insert @node into the leftmost cached tree @tree
+ * @node: node to insert
+ * @tree: tree to insert @node into
+ * @less: operator defining the (partial) node order
+ *
+ * Returns: nothing
+ */
+static __always_inline void
+rb_add_cached(struct rb_node *node, struct rb_root_cached *tree,
+	      bool (*less)(struct rb_node *, const struct rb_node *))
+{
+	struct rb_node **link = &tree->rb_root.rb_node;
+	struct rb_node *parent = NULL;
+	bool leftmost = true;
+
+	while (*link) {
+		parent = *link;
+		if (less(node, parent)) {
+			link = &parent->rb_left;
+		} else {
+			link = &parent->rb_right;
+			leftmost = false;
+		}
+	}
+
+	rb_link_node(node, parent, link);
+	rb_insert_color_cached(node, tree, leftmost);
+}
+
 #endif /* RB_FIND_NOT_PRESENT */
 #endif
