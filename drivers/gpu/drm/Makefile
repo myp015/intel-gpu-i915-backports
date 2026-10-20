@@ -140,6 +140,9 @@ obj-$(CPTCFG_DRM_MIPI_DSI) += drm_mipi_dsi.o
 endif
 obj-y			+= display/
 obj-$(CPTCFG_DRM_TTM)	+= ttm/
+obj-$(CPTCFG_DRM_SCHED)	+= scheduler/
+obj-$(CPTCFG_DRM_AMDGPU)	+= amd/amdgpu/
+obj-$(CPTCFG_DRM_AMDGPU)	+= amd/amdxcp/
 obj-$(CPTCFG_DRM_I915)	+= i915/
 obj-$(CPTCFG_DRM_VGEM)	+= vgem/
 obj-y			+= bridge/

@@ -1,0 +1,76 @@
+# SPDX-License-Identifier: MIT
+
+config DRM_AMDGPU
+	tristate "AMD GPU"
+	depends on DRM && PCI && MMU
+	depends on !UML
+	select DRM_DISPLAY_DP_HELPER
+	select DRM_DISPLAY_HDMI_HELPER
+	select DRM_DISPLAY_HDCP_HELPER
+	select DRM_DISPLAY_HELPER
+	select DRM_KMS_HELPER
+	select DRM_SCHED
+	select DRM_TTM
+	select DRM_TTM_HELPER
+	select I2C_ALGOBIT
+	select DRM_BUDDY
+	select DRM_SUBALLOC_HELPER
+	# 注（Task#202）：上游此处还 select FW_LOADER/POWER_SUPPLY/HWMON/I2C/
+	# BACKLIGHT_CLASS_DEVICE/INTERVAL_TREE/INPUT/ACPI_VIDEO/X86_PLATFORM_DEVICES/
+	# ACPI_WMI —— 这些都是内核自身的配置项，backport 树不编它们，只需在运行时
+	# 由官方内核提供符号。保留 select 会触发 Kconfig 递归依赖
+	# （DRM depends on I2C，而 DRM_AMDGPU selects I2C）。
+	help
+	  Choose this option if you have a recent AMD Radeon graphics card.
+
+	  If M is selected, the module will be called amdgpu.
+
+config DRM_AMDGPU_SI
+	bool "Enable amdgpu support for SI parts"
+	depends on DRM_AMDGPU
+	help
+	  Choose this option if you want to enable experimental support
+	  for SI (Southern Islands) asics.
+
+	  SI is already supported in radeon. Experimental support for SI
+	  in amdgpu will be disabled by default and is still provided by
+	  radeon. Use module options to override this:
+
+	  radeon.si_support=0 amdgpu.si_support=1
+
+config DRM_AMDGPU_CIK
+	bool "Enable amdgpu support for CIK parts"
+	depends on DRM_AMDGPU
+	help
+	  Choose this option if you want to enable support for CIK (Sea
+	  Islands) asics.
+
+	  CIK is already supported in radeon. Support for CIK in amdgpu
+	  will be disabled by default and is still provided by radeon.
+	  Use module options to override this:
+
+	  radeon.cik_support=0 amdgpu.cik_support=1
+
+config DRM_AMDGPU_USERPTR
+	bool "Always enable userptr write support"
+	depends on DRM_AMDGPU
+	depends on MMU
+	select HMM_MIRROR
+	select MMU_NOTIFIER
+	help
+	  This option selects CONFIG_HMM and CONFIG_HMM_MIRROR if it
+	  isn't already selected to enabled full userptr support.
+
+config DRM_AMDGPU_WERROR
+	bool "Force the compiler to throw an error instead of a warning when compiling"
+	depends on DRM_AMDGPU
+	depends on EXPERT
+	depends on !COMPILE_TEST
+	default n
+	help
+	  Add -Werror to the build flags for amdgpu.ko.
+	  Only enable this if you are warning code for amdgpu.ko.
+
+source "drivers/gpu/drm/amd/acp/Kconfig"
+source "drivers/gpu/drm/amd/display/Kconfig"
+source "drivers/gpu/drm/amd/amdkfd/Kconfig"
