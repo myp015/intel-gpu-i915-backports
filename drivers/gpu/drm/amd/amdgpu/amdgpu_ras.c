@@ -3003,7 +3003,14 @@ void amdgpu_release_ras_context(struct amdgpu_device *adev)
 	}
 }
 
-#ifdef CONFIG_X86_MCE_AMD
+/*
+ * Task#202：本段 amdgpu_bad_page_notifier 依赖 6.0 才进入 <asm/mce.h> 的
+ * SMCA_UMC_V2 枚举与 smca_get_bank_type() 声明。DSM 5.10 内核（即便是
+ * CONFIG_X86_MCE_AMD=y 的 AMD 平台，如 r1000nk/epyc7002）两样都没有，
+ * 直接引用会 implicit-declaration 编译失败；且该函数内核未导出，也不能
+ * 靠自带符号解决。5.10 上该 UMC_V2 坏页通知路径不存在，编译排除。
+ */
+#if defined(CONFIG_X86_MCE_AMD) && LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)
 static struct amdgpu_device *find_adev(uint32_t node_id)
 {
 	int i;
