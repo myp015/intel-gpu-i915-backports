@@ -394,8 +394,14 @@ int radeon_cs_parser_init(struct radeon_cs_parser *p, void *data)
 	return 0;
 }
 
+/* Task#202：6.5 起 list_sort 的回调改为 list_cmp_func_t（参数带 const） */
+#if LINUX_VERSION_IS_LESS(6,5,0)
+static int cmp_size_smaller_first(void *priv, struct list_head *a,
+				  struct list_head *b)
+#else
 static int cmp_size_smaller_first(void *priv, const struct list_head *a,
 				  const struct list_head *b)
+#endif
 {
 	struct radeon_bo_list *la = list_entry(a, struct radeon_bo_list, tv.head);
 	struct radeon_bo_list *lb = list_entry(b, struct radeon_bo_list, tv.head);
