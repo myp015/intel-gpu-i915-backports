@@ -4128,7 +4128,12 @@ fence_driver_init:
 	/* this will fail for cards that aren't VGA class devices, just
 	 * ignore it */
 	if ((adev->pdev->class >> 8) == PCI_CLASS_DISPLAY_VGA)
+#ifdef BPM_VGA_SET_DECODE_ARG_PCI_DEV_NOT_PRESENT
+		vga_client_register(adev->pdev, NULL, NULL,
+				    amdgpu_device_vga_set_decode);
+#else
 		vga_client_register(adev->pdev, amdgpu_device_vga_set_decode);
+#endif
 
 	px = amdgpu_device_supports_px(ddev);
 
@@ -4286,7 +4291,11 @@ void amdgpu_device_fini_sw(struct amdgpu_device *adev)
 		vga_switcheroo_fini_domain_pm_ops(adev->dev);
 
 	if ((adev->pdev->class >> 8) == PCI_CLASS_DISPLAY_VGA)
+#ifdef BPM_VGA_CLIENT_UNREGISTER_NOT_PRESENT
+		vga_client_register(adev->pdev, NULL, NULL, NULL);
+#else
 		vga_client_unregister(adev->pdev);
+#endif
 
 	if (drm_dev_enter(adev_to_drm(adev), &idx)) {
 

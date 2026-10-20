@@ -1425,7 +1425,11 @@ int radeon_device_init(struct radeon_device *rdev,
 	/* if we have > 1 VGA cards, then disable the radeon VGA resources */
 	/* this will fail for cards that aren't VGA class devices, just
 	 * ignore it */
+#ifdef BPM_VGA_SET_DECODE_ARG_PCI_DEV_NOT_PRESENT
+	vga_client_register(rdev->pdev, NULL, NULL, radeon_vga_set_decode);
+#else
 	vga_client_register(rdev->pdev, radeon_vga_set_decode);
+#endif
 
 	if (rdev->flags & RADEON_IS_PX)
 		runtime = true;
@@ -1523,7 +1527,11 @@ void radeon_device_fini(struct radeon_device *rdev)
 		vga_switcheroo_unregister_client(rdev->pdev);
 	if (rdev->flags & RADEON_IS_PX)
 		vga_switcheroo_fini_domain_pm_ops(rdev->dev);
+#ifdef BPM_VGA_CLIENT_UNREGISTER_NOT_PRESENT
+	vga_client_register(rdev->pdev, NULL, NULL, NULL);
+#else
 	vga_client_unregister(rdev->pdev);
+#endif
 	if (rdev->rio_mem)
 		pci_iounmap(rdev->pdev, rdev->rio_mem);
 	rdev->rio_mem = NULL;
