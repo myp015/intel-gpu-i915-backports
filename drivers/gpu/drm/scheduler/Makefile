@@ -22,4 +22,4 @@
 #
 gpu-sched-y := sched_main.o sched_fence.o sched_entity.o
 
-obj-$(CONFIG_DRM_SCHED) += gpu-sched.o
+obj-$(CPTCFG_DRM_SCHED) += gpu-sched.o
