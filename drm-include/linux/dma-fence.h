@@ -18,6 +18,7 @@
 #include <linux/list.h>
 #include <linux/bitops.h>
 #include <linux/kref.h>
+#include <linux/ktime.h>
 #include <linux/sched.h>
 #include <linux/printk.h>
 #include <linux/rcupdate.h>
@@ -583,6 +584,30 @@ static inline void dma_fence_set_error(struct dma_fence *fence,
 	WARN_ON(error >= 0 || error < -MAX_ERRNO);
 
 	fence->error = error;
+}
+
+/**
+ * dma_fence_timestamp - helper to get the completion timestamp of a fence
+ * @fence: fence to get the timestamp from.
+ *
+ * After a fence is signaled the timestamp is updated with the signaling time,
+ * but setting the timestamp can race with tasks waiting for the signaling. This
+ * helper busy waits for the correct timestamp to appear.
+ */
+/*
+ * Task#202：6.5 的 drm scheduler（sched_main.c）使用该 helper，而本 fork 的
+ * dma-fence 头是从更早的版本带入的，缺此内联函数。实现与 Linux v6.5.13
+ * include/linux/dma-fence.h 完全一致。
+ */
+static inline ktime_t dma_fence_timestamp(struct dma_fence *fence)
+{
+	if (WARN_ON(!test_bit(DMA_FENCE_FLAG_SIGNALED_BIT, &fence->flags)))
+		return ktime_get();
+
+	while (!test_bit(DMA_FENCE_FLAG_TIMESTAMP_BIT, &fence->flags))
+		cpu_relax();
+
+	return fence->timestamp;
 }
 
 signed long dma_fence_wait_timeout(struct dma_fence *,
