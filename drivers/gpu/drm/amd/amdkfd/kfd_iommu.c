@@ -34,6 +34,18 @@
 #include "kfd_topology.h"
 #include "kfd_iommu.h"
 
+/*
+ * Task#202：amd_iommu_pc_* 三个 helper 在 6.0 之前只声明在 IOMMU 驱动私有头
+ * drivers/iommu/amd/amd_iommu.h 中，公共的 <linux/amd-iommu.h> 没有原型，
+ * 直接调用会 implicit-declaration 编译失败（DSM 5.10 的 AMD 平台实证）。
+ * 内核已 EXPORT_SYMBOL 这三个符号（exports_<plat> 逐平台核对），补原型即可。
+ */
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 0, 0)
+bool amd_iommu_pc_supported(void);
+u8 amd_iommu_pc_get_max_banks(unsigned int idx);
+u8 amd_iommu_pc_get_max_counters(unsigned int idx);
+#endif
+
 static const u32 required_iommu_flags = AMD_IOMMU_DEVICE_FLAG_ATS_SUP |
 					AMD_IOMMU_DEVICE_FLAG_PRI_SUP |
 					AMD_IOMMU_DEVICE_FLAG_PASID_SUP;
