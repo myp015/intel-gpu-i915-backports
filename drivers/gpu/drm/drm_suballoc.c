@@ -42,6 +42,9 @@
 
 #include <drm/drm_suballoc.h>
 #include <drm/drm_print.h>
+/* Task#202：backport 环境（内核 5.10 + 本树头文件裁剪）下 6.5 的间接包含链
+ * 不再带入 module.h，MODULE_AUTHOR/DESCRIPTION/LICENSE 无法展开。显式包含。 */
+#include <linux/module.h>
 #include <linux/slab.h>
 #include <linux/sched.h>
 #include <linux/wait.h>
