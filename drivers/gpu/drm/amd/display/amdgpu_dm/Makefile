@@ -33,11 +33,11 @@ AMDGPUDM = \
 	amdgpu_dm_mst_types.o \
 	amdgpu_dm_color.o
 
-ifdef CONFIG_DRM_AMD_DC_FP
+ifdef CPTCFG_DRM_AMD_DC_FP
 AMDGPUDM += dc_fpu.o
 endif
 
-ifneq ($(CONFIG_DRM_AMD_DC),)
+ifneq ($(CPTCFG_DRM_AMD_DC),)
 AMDGPUDM += amdgpu_dm_services.o amdgpu_dm_helpers.o amdgpu_dm_pp_smu.o amdgpu_dm_psr.o
 endif
 

@@ -76,8 +76,8 @@ radeon-y += \
 	vce_v1_0.o \
 	vce_v2_0.o
 
-radeon-$(CONFIG_DRM_FBDEV_EMULATION) += radeon_fbdev.o
+radeon-$(CPTCFG_DRM_FBDEV_EMULATION) += radeon_fbdev.o
 radeon-$(CONFIG_VGA_SWITCHEROO) += radeon_atpx_handler.o
 radeon-$(CONFIG_ACPI) += radeon_acpi.o
 
-obj-$(CONFIG_DRM_RADEON)+= radeon.o
+obj-$(CPTCFG_DRM_RADEON)+= radeon.o

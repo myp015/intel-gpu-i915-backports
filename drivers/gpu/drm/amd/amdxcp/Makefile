@@ -22,4 +22,4 @@
 
 amdxcp-y := amdgpu_xcp_drv.o
 
-obj-$(CONFIG_DRM_AMDGPU) += amdxcp.o
+obj-$(CPTCFG_DRM_AMDGPU) += amdxcp.o

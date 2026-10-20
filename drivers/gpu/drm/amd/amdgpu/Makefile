@@ -59,7 +59,7 @@ subdir-ccflags-y += -Wno-type-limits
 subdir-ccflags-y += -Wno-sign-compare
 subdir-ccflags-y += -Wno-missing-field-initializers
 subdir-ccflags-y += -Wno-override-init
-subdir-ccflags-$(CONFIG_DRM_AMDGPU_WERROR) += -Werror
+subdir-ccflags-$(CPTCFG_DRM_AMDGPU_WERROR) += -Werror
 
 amdgpu-y := amdgpu_drv.o
 
@@ -89,10 +89,10 @@ amdgpu-$(CONFIG_PROC_FS) += amdgpu_fdinfo.o
 amdgpu-$(CONFIG_PERF_EVENTS) += amdgpu_pmu.o
 
 # add asic specific block
-amdgpu-$(CONFIG_DRM_AMDGPU_CIK)+= cik.o cik_ih.o \
+amdgpu-$(CPTCFG_DRM_AMDGPU_CIK)+= cik.o cik_ih.o \
 	dce_v8_0.o gfx_v7_0.o cik_sdma.o uvd_v4_2.o vce_v2_0.o
 
-amdgpu-$(CONFIG_DRM_AMDGPU_SI)+= si.o gmc_v6_0.o gfx_v6_0.o si_ih.o si_dma.o dce_v6_0.o \
+amdgpu-$(CPTCFG_DRM_AMDGPU_SI)+= si.o gmc_v6_0.o gfx_v6_0.o si_ih.o si_dma.o dce_v6_0.o \
 	uvd_v3_1.o
 
 amdgpu-y += \
@@ -242,7 +242,7 @@ amdgpu-y += \
 amdgpu-y += amdgpu_amdkfd.o
 
 
-ifneq ($(CONFIG_HSA_AMD),)
+ifneq ($(CPTCFG_HSA_AMD),)
 AMDKFD_PATH := ../amdkfd
 include $(FULL_AMD_PATH)/amdkfd/Makefile
 amdgpu-y += $(AMDKFD_FILES)
@@ -258,7 +258,7 @@ amdgpu-y += \
 	amdgpu_amdkfd_gfx_v10_3.o \
 	amdgpu_amdkfd_gfx_v11.o
 
-ifneq ($(CONFIG_DRM_AMDGPU_CIK),)
+ifneq ($(CPTCFG_DRM_AMDGPU_CIK),)
 amdgpu-y += amdgpu_amdkfd_gfx_v7.o
 endif
 
@@ -271,7 +271,7 @@ amdgpu-y += amdgpu_cgs.o
 amdgpu-y += amdgpu_job.o
 
 # ACP componet
-ifneq ($(CONFIG_DRM_AMD_ACP),)
+ifneq ($(CPTCFG_DRM_AMD_ACP),)
 amdgpu-y += amdgpu_acp.o
 
 AMDACPPATH := ../acp
@@ -289,7 +289,7 @@ include $(FULL_AMD_PATH)/pm/Makefile
 
 amdgpu-y += $(AMD_POWERPLAY_FILES)
 
-ifneq ($(CONFIG_DRM_AMD_DC),)
+ifneq ($(CPTCFG_DRM_AMD_DC),)
 
 RELATIVE_AMD_DISPLAY_PATH = ../$(DISPLAY_FOLDER_NAME)
 include $(FULL_AMD_DISPLAY_PATH)/Makefile
@@ -298,4 +298,4 @@ amdgpu-y += $(AMD_DISPLAY_FILES)
 
 endif
 
-obj-$(CONFIG_DRM_AMDGPU)+= amdgpu.o
+obj-$(CPTCFG_DRM_AMDGPU)+= amdgpu.o

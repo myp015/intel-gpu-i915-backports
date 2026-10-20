@@ -24,8 +24,8 @@ AMD_LEGACYDPM_PATH = ../pm/legacy-dpm
 
 LEGACYDPM_MGR-y = legacy_dpm.o
 
-LEGACYDPM_MGR-$(CONFIG_DRM_AMDGPU_CIK)+= kv_dpm.o kv_smc.o
-LEGACYDPM_MGR-$(CONFIG_DRM_AMDGPU_SI)+= si_dpm.o si_smc.o
+LEGACYDPM_MGR-$(CPTCFG_DRM_AMDGPU_CIK)+= kv_dpm.o kv_smc.o
+LEGACYDPM_MGR-$(CPTCFG_DRM_AMDGPU_SI)+= si_dpm.o si_smc.o
 
 AMD_LEGACYDPM_POWER = $(addprefix $(AMD_LEGACYDPM_PATH)/,$(LEGACYDPM_MGR-y))
 

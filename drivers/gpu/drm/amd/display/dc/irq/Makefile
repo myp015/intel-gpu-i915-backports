@@ -33,7 +33,7 @@ AMD_DISPLAY_FILES += $(AMD_DAL_IRQ)
 ###############################################################################
 # DCE 6x
 ###############################################################################
-ifdef CONFIG_DRM_AMD_DC_SI
+ifdef CPTCFG_DRM_AMD_DC_SI
 IRQ_DCE60 = irq_service_dce60.o
 
 AMD_DAL_IRQ_DCE60 = $(addprefix $(AMDDALPATH)/dc/irq/dce60/,$(IRQ_DCE60))
