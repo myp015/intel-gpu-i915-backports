@@ -357,8 +357,14 @@ static int radeon_ttm_tt_pin_userptr(struct ttm_device *bdev, struct ttm_tt *ttm
 		uint64_t userptr = gtt->userptr + pinned * PAGE_SIZE;
 		struct page **pages = ttm->pages + pinned;
 
+#if LINUX_VERSION_IS_LESS(6,5,0)
+		/* Task#202：6.5 起 get_user_pages() 去掉了 vmas 参数 */
+		r = get_user_pages(userptr, num_pages, write ? FOLL_WRITE : 0,
+				   pages, NULL);
+#else
 		r = get_user_pages(userptr, num_pages, write ? FOLL_WRITE : 0,
 				   pages);
+#endif
 		if (r < 0)
 			goto release_pages;
 
