@@ -1707,8 +1707,9 @@ static bool filter_modes_for_single_channel_workaround(struct dc *dc,
 	// Filter 2K@240Hz+8K@24fps above combination timing if memory only has single dimm LPDDR
 	if (dc->clk_mgr->bw_params->vram_type == 34 && dc->clk_mgr->bw_params->num_channels < 2) {
 		int total_phy_pix_clk = 0;
+		int i;
 
-		for (int i = 0; i < context->stream_count; i++)
+		for (i = 0; i < context->stream_count; i++)
 			if (context->res_ctx.pipe_ctx[i].stream)
 				total_phy_pix_clk += context->res_ctx.pipe_ctx[i].stream->phy_pix_clk;
 

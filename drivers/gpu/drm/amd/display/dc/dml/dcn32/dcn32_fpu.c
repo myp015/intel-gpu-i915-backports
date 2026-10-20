@@ -2361,8 +2361,9 @@ static void sort_entries_with_same_bw(struct _vcs_dpi_voltage_scaling_st *table,
 	unsigned int start_index = 0;
 	unsigned int end_index = 0;
 	unsigned int current_bw = 0;
+	int i, j, k;
 
-	for (int i = 0; i < (*num_entries - 1); i++) {
+	for (i = 0; i < (*num_entries - 1); i++) {
 		if (table[i].net_bw_in_kbytes_sec == table[i+1].net_bw_in_kbytes_sec) {
 			current_bw = table[i].net_bw_in_kbytes_sec;
 			start_index = i;
@@ -2373,8 +2374,8 @@ static void sort_entries_with_same_bw(struct _vcs_dpi_voltage_scaling_st *table,
 		}
 
 		if (start_index != end_index) {
-			for (int j = start_index; j < end_index; j++) {
-				for (int k = start_index; k < end_index; k++) {
+			for (j = start_index; j < end_index; j++) {
+				for (k = start_index; k < end_index; k++) {
 					if (table[k].dcfclk_mhz > table[k+1].dcfclk_mhz)
 						swap_table_entries(&table[k], &table[k+1]);
 				}
@@ -2393,7 +2394,9 @@ static void sort_entries_with_same_bw(struct _vcs_dpi_voltage_scaling_st *table,
  */
 static void remove_inconsistent_entries(struct _vcs_dpi_voltage_scaling_st *table, unsigned int *num_entries)
 {
-	for (int i = 0; i < (*num_entries - 1); i++) {
+	int i;
+
+	for (i = 0; i < (*num_entries - 1); i++) {
 		if (table[i].net_bw_in_kbytes_sec == table[i+1].net_bw_in_kbytes_sec) {
 			if ((table[i].dram_speed_mts > table[i+1].dram_speed_mts) ||
 				(table[i].fabricclk_mhz > table[i+1].fabricclk_mhz))

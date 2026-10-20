@@ -739,9 +739,10 @@ void amdgpu_fence_driver_set_error(struct amdgpu_ring *ring, int error)
 {
 	struct amdgpu_fence_driver *drv = &ring->fence_drv;
 	unsigned long flags;
+	unsigned int i;
 
 	spin_lock_irqsave(&drv->lock, flags);
-	for (unsigned int i = 0; i <= drv->num_fences_mask; ++i) {
+	for (i = 0; i <= drv->num_fences_mask; ++i) {
 		struct dma_fence *fence;
 
 		fence = rcu_dereference_protected(drv->fences[i],

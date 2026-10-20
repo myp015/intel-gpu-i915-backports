@@ -91,6 +91,7 @@ void __acpi_handle_debug(struct _ddebug *descriptor, acpi_handle handle, const c
 #define acpi_handle_warn(handle, fmt, ...)				\
 	acpi_handle_printk(KERN_WARNING, handle, fmt, ##__VA_ARGS__)
 #endif
+#endif
 
 /*
  * Task#202：6.1 起 ACPI video 把 backlight 注册拆成独立步骤
@@ -101,5 +102,5 @@ void __acpi_handle_debug(struct _ddebug *descriptor, acpi_handle handle, const c
 static inline bool acpi_video_backlight_use_native(void) { return true; }
 static inline void acpi_video_register_backlight(void) { }
 #endif
-#endif
+
 #endif
