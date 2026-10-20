@@ -34,6 +34,9 @@
  * structure used to represent link capability instead of function interfaces.
  */
 
+/* Task#202：str_yes_no() 在 5.10 由 backport-include 提供，需显式包含 */
+#include <linux/string_helpers.h>
+
 #include "link_dp_capability.h"
 #include "link_ddc.h"
 #include "link_dpcd.h"
