@@ -46,7 +46,7 @@
 #include "link/hwss/link_hwss_dpia.h"
 #include "link/hwss/link_hwss_hpo_dp.h"
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 #include "dce60/dce60_resource.h"
 #endif
 #include "dce80/dce80_resource.h"
@@ -78,7 +78,7 @@ enum dce_version resource_parse_asic_id(struct hw_asic_id asic_id)
 
 	switch (asic_id.chip_family) {
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 	case FAMILY_SI:
 		if (ASIC_REV_IS_TAHITI_P(asic_id.hw_internal_rev) ||
 		    ASIC_REV_IS_PITCAIRN_PM(asic_id.hw_internal_rev) ||
@@ -187,7 +187,7 @@ struct resource_pool *dc_create_resource_pool(struct dc  *dc,
 	struct resource_pool *res_pool = NULL;
 
 	switch (dc_version) {
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 	case DCE_VERSION_6_0:
 		res_pool = dce60_create_resource_pool(
 			init_data->num_virtual_links, dc);
@@ -233,7 +233,7 @@ struct resource_pool *dc_create_resource_pool(struct dc  *dc,
 				init_data->num_virtual_links, dc);
 		break;
 
-#if defined(CONFIG_DRM_AMD_DC_FP)
+#if defined(CPTCFG_DRM_AMD_DC_FP)
 	case DCN_VERSION_1_0:
 	case DCN_VERSION_1_01:
 		res_pool = dcn10_create_resource_pool(init_data, dc);
@@ -277,7 +277,7 @@ struct resource_pool *dc_create_resource_pool(struct dc  *dc,
 	case DCN_VERSION_3_21:
 		res_pool = dcn321_create_resource_pool(init_data, dc);
 		break;
-#endif /* CONFIG_DRM_AMD_DC_FP */
+#endif /* CPTCFG_DRM_AMD_DC_FP */
 	default:
 		break;
 	}
@@ -4093,14 +4093,14 @@ bool dc_resource_acquire_secondary_pipe_for_mpc_odm(
 		else
 			sec_pipe->stream_res.opp = sec_pipe->top_pipe->stream_res.opp;
 		if (sec_pipe->stream->timing.flags.DSC == 1) {
-#if defined(CONFIG_DRM_AMD_DC_FP)
+#if defined(CPTCFG_DRM_AMD_DC_FP)
 			dcn20_acquire_dsc(dc, &state->res_ctx, &sec_pipe->stream_res.dsc, pipe_idx);
 #endif
 			ASSERT(sec_pipe->stream_res.dsc);
 			if (sec_pipe->stream_res.dsc == NULL)
 				return false;
 		}
-#if defined(CONFIG_DRM_AMD_DC_FP)
+#if defined(CPTCFG_DRM_AMD_DC_FP)
 		dcn20_build_mapped_resource(dc, state, sec_pipe->stream);
 #endif
 	}

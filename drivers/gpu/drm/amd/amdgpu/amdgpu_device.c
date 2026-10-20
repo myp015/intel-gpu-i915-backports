@@ -54,10 +54,10 @@
 #include "amdgpu_atombios.h"
 #include "amdgpu_atomfirmware.h"
 #include "amd_pcie.h"
-#ifdef CONFIG_DRM_AMDGPU_SI
+#ifdef CPTCFG_DRM_AMDGPU_SI
 #include "si.h"
 #endif
-#ifdef CONFIG_DRM_AMDGPU_CIK
+#ifdef CPTCFG_DRM_AMDGPU_CIK
 #include "cik.h"
 #endif
 #include "vi.h"
@@ -2253,7 +2253,7 @@ static int amdgpu_device_ip_early_init(struct amdgpu_device *adev)
 	}
 
 	switch (adev->asic_type) {
-#ifdef CONFIG_DRM_AMDGPU_SI
+#ifdef CPTCFG_DRM_AMDGPU_SI
 	case CHIP_VERDE:
 	case CHIP_TAHITI:
 	case CHIP_PITCAIRN:
@@ -2265,7 +2265,7 @@ static int amdgpu_device_ip_early_init(struct amdgpu_device *adev)
 			return r;
 		break;
 #endif
-#ifdef CONFIG_DRM_AMDGPU_CIK
+#ifdef CPTCFG_DRM_AMDGPU_CIK
 	case CHIP_BONAIRE:
 	case CHIP_HAWAII:
 	case CHIP_KAVERI:
@@ -3499,13 +3499,13 @@ static void amdgpu_device_detect_sriov_bios(struct amdgpu_device *adev)
 bool amdgpu_device_asic_has_dc_support(enum amd_asic_type asic_type)
 {
 	switch (asic_type) {
-#ifdef CONFIG_DRM_AMDGPU_SI
+#ifdef CPTCFG_DRM_AMDGPU_SI
 	case CHIP_HAINAN:
 #endif
 	case CHIP_TOPAZ:
 		/* chips with no display hardware */
 		return false;
-#if defined(CONFIG_DRM_AMD_DC)
+#if defined(CPTCFG_DRM_AMD_DC)
 	case CHIP_TAHITI:
 	case CHIP_PITCAIRN:
 	case CHIP_VERDE:
@@ -3517,7 +3517,7 @@ bool amdgpu_device_asic_has_dc_support(enum amd_asic_type asic_type)
 		 * Fallback to the non-DC driver here by default so as not to
 		 * cause regressions.
 		 */
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 		return amdgpu_dc > 0;
 #else
 		return false;
@@ -4868,14 +4868,14 @@ bool amdgpu_device_should_recover_gpu(struct amdgpu_device *adev)
 
 	if (amdgpu_gpu_recovery == -1) {
 		switch (adev->asic_type) {
-#ifdef CONFIG_DRM_AMDGPU_SI
+#ifdef CPTCFG_DRM_AMDGPU_SI
 		case CHIP_VERDE:
 		case CHIP_TAHITI:
 		case CHIP_PITCAIRN:
 		case CHIP_OLAND:
 		case CHIP_HAINAN:
 #endif
-#ifdef CONFIG_DRM_AMDGPU_CIK
+#ifdef CPTCFG_DRM_AMDGPU_CIK
 		case CHIP_KAVERI:
 		case CHIP_KABINI:
 		case CHIP_MULLINS:
@@ -5802,7 +5802,7 @@ static void amdgpu_device_get_pcie_info(struct amdgpu_device *adev)
 bool amdgpu_device_is_peer_accessible(struct amdgpu_device *adev,
 				      struct amdgpu_device *peer_adev)
 {
-#ifdef CONFIG_HSA_AMD_P2P
+#ifdef CPTCFG_HSA_AMD_P2P
 	uint64_t address_mask = peer_adev->dev->dma_mask ?
 		~*peer_adev->dev->dma_mask : ~((1ULL << 32) - 1);
 	resource_size_t aper_limit =
@@ -6228,19 +6228,19 @@ struct dma_fence *amdgpu_device_switch_gang(struct amdgpu_device *adev,
 bool amdgpu_device_has_display_hardware(struct amdgpu_device *adev)
 {
 	switch (adev->asic_type) {
-#ifdef CONFIG_DRM_AMDGPU_SI
+#ifdef CPTCFG_DRM_AMDGPU_SI
 	case CHIP_HAINAN:
 #endif
 	case CHIP_TOPAZ:
 		/* chips with no display hardware */
 		return false;
-#ifdef CONFIG_DRM_AMDGPU_SI
+#ifdef CPTCFG_DRM_AMDGPU_SI
 	case CHIP_TAHITI:
 	case CHIP_PITCAIRN:
 	case CHIP_VERDE:
 	case CHIP_OLAND:
 #endif
-#ifdef CONFIG_DRM_AMDGPU_CIK
+#ifdef CPTCFG_DRM_AMDGPU_CIK
 	case CHIP_BONAIRE:
 	case CHIP_HAWAII:
 	case CHIP_KAVERI:

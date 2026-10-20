@@ -85,7 +85,7 @@ void dce_pipe_control_lock(struct dc *dc,
 	}
 }
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 void dce60_pipe_control_lock(struct dc *dc,
 		struct pipe_ctx *pipe,
 		bool lock)

@@ -664,7 +664,7 @@ static void smu8_init_power_gate_state(struct pp_hwmgr *hwmgr)
 	data->uvd_power_gated = false;
 	data->vce_power_gated = false;
 	data->samu_power_gated = false;
-#ifdef CONFIG_DRM_AMD_ACP
+#ifdef CPTCFG_DRM_AMD_ACP
 	data->acp_power_gated = false;
 #else
 	smum_send_msg_to_smc(hwmgr, PPSMC_MSG_ACPPowerOFF, NULL);

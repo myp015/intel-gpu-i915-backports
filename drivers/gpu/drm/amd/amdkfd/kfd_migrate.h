@@ -25,7 +25,7 @@
 #ifndef KFD_MIGRATE_H_
 #define KFD_MIGRATE_H_
 
-#if IS_ENABLED(CONFIG_HSA_AMD_SVM)
+#if IS_ENABLED(CPTCFG_HSA_AMD_SVM)
 
 #include <linux/rwsem.h>
 #include <linux/list.h>
@@ -47,6 +47,6 @@ int svm_migrate_vram_to_ram(struct svm_range *prange, struct mm_struct *mm,
 unsigned long
 svm_migrate_addr_to_pfn(struct amdgpu_device *adev, unsigned long addr);
 
-#endif /* IS_ENABLED(CONFIG_HSA_AMD_SVM) */
+#endif /* IS_ENABLED(CPTCFG_HSA_AMD_SVM) */
 
 #endif /* KFD_MIGRATE_H_ */

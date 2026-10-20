@@ -80,7 +80,7 @@ int smu7_baco_set_state(struct pp_hwmgr *hwmgr, enum BACO_STATE state)
 	case CHIP_POLARIS12:
 	case CHIP_VEGAM:
 		return polaris_baco_set_state(hwmgr, state);
-#ifdef CONFIG_DRM_AMDGPU_CIK
+#ifdef CPTCFG_DRM_AMDGPU_CIK
 	case CHIP_BONAIRE:
 	case CHIP_HAWAII:
 		return ci_baco_set_state(hwmgr, state);

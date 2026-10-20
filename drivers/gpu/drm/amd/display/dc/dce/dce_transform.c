@@ -146,7 +146,7 @@ static bool setup_scaling_configuration(
 	return true;
 }
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 static bool dce60_setup_scaling_configuration(
 	struct dce_transform *xfm_dce,
 	const struct scaler_data *data)
@@ -306,7 +306,7 @@ static void calculate_inits(
 	inits->v_init.fraction = dc_fixpt_u0d19(v_init) << 5;
 }
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 static void dce60_calculate_inits(
 	struct dce_transform *xfm_dce,
 	const struct scaler_data *data,
@@ -358,7 +358,7 @@ static void program_scl_ratios_inits(
 	REG_WRITE(SCL_AUTOMATIC_MODE_CONTROL, 0);
 }
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 static void dce60_program_scl_ratios_inits(
 	struct dce_transform *xfm_dce,
 	struct sclh_ratios_inits *inits)
@@ -486,7 +486,7 @@ static void dce_transform_set_scaler(
 	REG_UPDATE(LB_DATA_FORMAT, ALPHA_EN, data->lb_params.alpha_en);
 }
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 static void dce60_transform_set_scaler(
 	struct transform *xfm,
 	const struct scaler_data *data)
@@ -834,7 +834,7 @@ static void program_bit_depth_reduction(
 		   bit_depth_params->flags.HIGHPASS_RANDOM);
 }
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 /*****************************************************************************
  * dce60_transform_bit_depth_reduction program
  *
@@ -1027,7 +1027,7 @@ static void dce_transform_set_pixel_storage_depth(
 	}
 }
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 static void dce60_transform_set_pixel_storage_depth(
 	struct transform *xfm,
 	enum lb_pixel_depth depth,
@@ -1606,7 +1606,7 @@ static const struct transform_funcs dce_transform_funcs = {
 	.transform_get_optimal_number_of_taps = dce_transform_get_optimal_number_of_taps
 };
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 static const struct transform_funcs dce60_transform_funcs = {
 	.transform_reset = dce_transform_reset,
 	.transform_set_scaler = dce60_transform_set_scaler,
@@ -1653,7 +1653,7 @@ void dce_transform_construct(
 	xfm_dce->lb_memory_size = LB_TOTAL_NUMBER_OF_ENTRIES; /*0x6B0*/
 }
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 void dce60_transform_construct(
 	struct dce_transform *xfm_dce,
 	struct dc_context *ctx,

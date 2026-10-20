@@ -84,7 +84,7 @@ struct dmcu_funcs {
 			int *min_frame_rate,
 			int *max_frame_rate);
 	bool (*recv_edid_cea_ack)(struct dmcu *dmcu, int *offset);
-#if defined(CONFIG_DRM_AMD_SECURE_DISPLAY)
+#if defined(CPTCFG_DRM_AMD_SECURE_DISPLAY)
 	void (*forward_crc_window)(struct dmcu *dmcu,
 			struct rect *rect,
 			struct otg_phy_mux *mux_mapping);

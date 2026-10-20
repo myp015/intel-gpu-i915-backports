@@ -108,7 +108,7 @@
 	SRI(DCFE_MEM_PWR_CTRL, DCFE, id), \
 	SRI(DCFE_MEM_PWR_STATUS, DCFE, id)
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 #define XFM_COMMON_REG_LIST_DCE60_BASE(id) \
 	SRI(DATA_FORMAT, LB, id), \
 	SRI(GAMUT_REMAP_CONTROL, DCP, id), \
@@ -266,7 +266,7 @@
 	XFM_SF(DCFE_MEM_PWR_STATUS, DCP_REGAMMA_MEM_PWR_STATE, mask_sh),\
 	XFM_SF(SCL_MODE, SCL_PSCL_EN, mask_sh)
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 #define XFM_COMMON_MASK_SH_LIST_DCE60(mask_sh) \
 	XFM_COMMON_MASK_SH_LIST_DCE60_COMMON_BASE(mask_sh), \
 	OPP_SF(DCFE_MEM_LIGHT_SLEEP_CNTL, REGAMMA_LUT_LIGHT_SLEEP_DIS, mask_sh),\
@@ -531,7 +531,7 @@ struct dce_transform_mask {
 };
 
 struct dce_transform_registers {
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 	uint32_t DATA_FORMAT;
 #endif
 	uint32_t LB_DATA_FORMAT;
@@ -589,13 +589,13 @@ struct dce_transform_registers {
 	uint32_t SCL_HORZ_FILTER_SCALE_RATIO;
 	uint32_t SCL_VERT_FILTER_SCALE_RATIO;
 	uint32_t SCL_HORZ_FILTER_INIT;
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 	uint32_t SCL_HORZ_FILTER_INIT_RGB_LUMA;
 	uint32_t SCL_HORZ_FILTER_INIT_CHROMA;
 #endif
 	uint32_t SCL_VERT_FILTER_INIT;
 	uint32_t SCL_AUTOMATIC_MODE_CONTROL;
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 	uint32_t DC_LB_MEMORY_SPLIT;
 	uint32_t DC_LB_MEM_SIZE;
 #endif
@@ -616,7 +616,7 @@ struct scl_ratios_inits {
 	struct init_int_and_frac v_init;
 };
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 struct sclh_ratios_inits {
 	uint32_t h_int_scale_ratio;
 	uint32_t v_int_scale_ratio;
@@ -658,7 +658,7 @@ void dce_transform_construct(struct dce_transform *xfm_dce,
 	const struct dce_transform_shift *xfm_shift,
 	const struct dce_transform_mask *xfm_mask);
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 void dce60_transform_construct(struct dce_transform *xfm_dce,
 	struct dc_context *ctx,
 	uint32_t inst,

@@ -939,7 +939,7 @@ void dce4_program_fmt(struct drm_encoder *encoder);
 void dce8_program_fmt(struct drm_encoder *encoder);
 
 /* fbdev layer */
-#if defined(CONFIG_DRM_FBDEV_EMULATION)
+#if defined(CPTCFG_DRM_FBDEV_EMULATION)
 void radeon_fbdev_setup(struct radeon_device *rdev);
 void radeon_fbdev_set_suspend(struct radeon_device *rdev, int state);
 bool radeon_fbdev_robj_is_fb(struct radeon_device *rdev, struct radeon_bo *robj);

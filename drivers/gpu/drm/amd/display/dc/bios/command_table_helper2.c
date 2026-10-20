@@ -37,7 +37,7 @@ bool dal_bios_parser_init_cmd_tbl_helper2(
 	enum dce_version dce)
 {
 	switch (dce) {
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 	case DCE_VERSION_6_0:
 	case DCE_VERSION_6_1:
 	case DCE_VERSION_6_4:

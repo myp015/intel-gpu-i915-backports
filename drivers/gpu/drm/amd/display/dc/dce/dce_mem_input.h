@@ -58,7 +58,7 @@
 	SRI(DVMM_PTE_CONTROL, DCP, id),\
 	SRI(DVMM_PTE_ARB_CONTROL, DCP, id)
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 #define MI_DCE6_REG_LIST(id)\
 	SRI(GRPH_ENABLE, DCP, id),\
 	SRI(GRPH_CONTROL, DCP, id),\
@@ -129,7 +129,7 @@ struct dce_mem_input_registers {
 	uint32_t GRPH_SECONDARY_SURFACE_ADDRESS_HIGH;
 	/* DMIF_PG */
 	uint32_t DPG_PIPE_ARBITRATION_CONTROL1;
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 	uint32_t DPG_PIPE_ARBITRATION_CONTROL3;
 #endif
 	uint32_t DPG_WATERMARK_MASK_CONTROL;
@@ -154,7 +154,7 @@ struct dce_mem_input_registers {
 #define SFB(blk_name, reg_name, field_name, post_fix)\
 	.field_name = blk_name ## reg_name ## __ ## field_name ## post_fix
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 #define MI_GFX6_TILE_MASK_SH_LIST(mask_sh, blk)\
 	SFB(blk, GRPH_CONTROL, GRPH_NUM_BANKS, mask_sh),\
 	SFB(blk, GRPH_CONTROL, GRPH_BANK_WIDTH, mask_sh),\
@@ -201,7 +201,7 @@ struct dce_mem_input_registers {
 	SFB(blk, GRPH_UPDATE, GRPH_UPDATE_LOCK, mask_sh),\
 	SFB(blk, GRPH_FLIP_CONTROL, GRPH_SURFACE_UPDATE_H_RETRACE_EN, mask_sh)
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 #define MI_DCP_MASK_SH_LIST_DCE6(mask_sh, blk)\
 	SFB(blk, GRPH_ENABLE, GRPH_ENABLE, mask_sh),\
 	SFB(blk, GRPH_CONTROL, GRPH_DEPTH, mask_sh),\
@@ -236,7 +236,7 @@ struct dce_mem_input_registers {
 	SFB(blk, DVMM_PTE_ARB_CONTROL, DVMM_PTE_REQ_PER_CHUNK, mask_sh),\
 	SFB(blk, DVMM_PTE_ARB_CONTROL, DVMM_MAX_PTE_REQ_OUTSTANDING, mask_sh)
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 #define MI_DMIF_PG_MASK_SH_LIST_DCE6(mask_sh, blk)\
 	SFB(blk, DPG_PIPE_ARBITRATION_CONTROL1, PIXEL_DURATION, mask_sh),\
 	SFB(blk, DPG_PIPE_URGENCY_CONTROL, URGENCY_LOW_WATERMARK, mask_sh),\
@@ -437,7 +437,7 @@ void dce_mem_input_construct(
 	const struct dce_mem_input_shift *mi_shift,
 	const struct dce_mem_input_mask *mi_mask);
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 void dce60_mem_input_construct(
 	struct dce_mem_input *dce_mi,
 	struct dc_context *ctx,

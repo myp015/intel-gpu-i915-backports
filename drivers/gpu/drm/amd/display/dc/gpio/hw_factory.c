@@ -40,7 +40,7 @@
  * Post-requisites: headers required by this unit
  */
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 #include "dce60/hw_factory_dce60.h"
 #endif
 #include "dce80/hw_factory_dce80.h"
@@ -59,7 +59,7 @@ bool dal_hw_factory_init(
 	enum dce_environment dce_environment)
 {
 	switch (dce_version) {
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 	case DCE_VERSION_6_0:
 	case DCE_VERSION_6_1:
 	case DCE_VERSION_6_4:

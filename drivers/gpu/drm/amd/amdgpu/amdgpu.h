@@ -215,7 +215,7 @@ extern int amdgpu_smartshift_bias;
 extern int amdgpu_use_xgmi_p2p;
 extern int amdgpu_mtype_local;
 extern bool enforce_isolation;
-#ifdef CONFIG_HSA_AMD
+#ifdef CPTCFG_HSA_AMD
 extern int sched_policy;
 extern bool debug_evictions;
 extern bool no_system_mem_limit;
@@ -226,17 +226,17 @@ static const bool __maybe_unused debug_evictions; /* = false */
 static const bool __maybe_unused no_system_mem_limit;
 static const int __maybe_unused halt_if_hws_hang;
 #endif
-#ifdef CONFIG_HSA_AMD_P2P
+#ifdef CPTCFG_HSA_AMD_P2P
 extern bool pcie_p2p;
 #endif
 
 extern int amdgpu_tmz;
 extern int amdgpu_reset_method;
 
-#ifdef CONFIG_DRM_AMDGPU_SI
+#ifdef CPTCFG_DRM_AMDGPU_SI
 extern int amdgpu_si_support;
 #endif
-#ifdef CONFIG_DRM_AMDGPU_CIK
+#ifdef CPTCFG_DRM_AMDGPU_CIK
 extern int amdgpu_cik_support;
 #endif
 extern int amdgpu_num_kcq;
@@ -772,7 +772,7 @@ struct amdgpu_device {
 	struct pci_dev			*pdev;
 	struct drm_device		ddev;
 
-#ifdef CONFIG_DRM_AMD_ACP
+#ifdef CPTCFG_DRM_AMD_ACP
 	struct amdgpu_acp		acp;
 #endif
 	struct amdgpu_hive_info *hive;
@@ -1463,7 +1463,7 @@ static inline bool amdgpu_acpi_is_s0ix_active(struct amdgpu_device *adev) { retu
 static inline bool amdgpu_acpi_is_s3_active(struct amdgpu_device *adev) { return false; }
 #endif
 
-#if defined(CONFIG_DRM_AMD_DC)
+#if defined(CPTCFG_DRM_AMD_DC)
 int amdgpu_dm_display_resume(struct amdgpu_device *adev );
 #else
 static inline int amdgpu_dm_display_resume(struct amdgpu_device *adev) { return 0; }

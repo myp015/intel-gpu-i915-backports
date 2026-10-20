@@ -25,7 +25,7 @@
 #ifndef KFD_SVM_H_
 #define KFD_SVM_H_
 
-#if IS_ENABLED(CONFIG_HSA_AMD_SVM)
+#if IS_ENABLED(CPTCFG_HSA_AMD_SVM)
 
 #include <linux/rwsem.h>
 #include <linux/list.h>
@@ -270,6 +270,6 @@ static inline void svm_range_set_max_pages(struct amdgpu_device *adev)
 
 #define KFD_IS_SVM_API_SUPPORTED(dev) false
 
-#endif /* IS_ENABLED(CONFIG_HSA_AMD_SVM) */
+#endif /* IS_ENABLED(CPTCFG_HSA_AMD_SVM) */
 
 #endif /* KFD_SVM_H_ */

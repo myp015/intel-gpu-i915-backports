@@ -497,7 +497,7 @@ struct amdgpu_display_manager {
 	 */
 	uint32_t active_vblank_irq_count;
 
-#if defined(CONFIG_DRM_AMD_SECURE_DISPLAY)
+#if defined(CPTCFG_DRM_AMD_SECURE_DISPLAY)
 	/**
 	 * @secure_display_ctxs:
 	 *

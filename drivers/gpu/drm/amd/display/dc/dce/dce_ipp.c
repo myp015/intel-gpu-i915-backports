@@ -229,7 +229,7 @@ static void dce_ipp_set_degamma(
 		  CURSOR2_DEGAMMA_MODE, degamma_type);
 }
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 static void dce60_ipp_set_degamma(
 	struct input_pixel_processor *ipp,
 	enum ipp_degamma_mode mode)
@@ -253,7 +253,7 @@ static const struct ipp_funcs dce_ipp_funcs = {
 	.ipp_set_degamma = dce_ipp_set_degamma
 };
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 static const struct ipp_funcs dce60_ipp_funcs = {
 	.ipp_cursor_set_attributes = dce_ipp_cursor_set_attributes,
 	.ipp_cursor_set_position = dce_ipp_cursor_set_position,
@@ -285,7 +285,7 @@ void dce_ipp_construct(
 	ipp_dce->ipp_mask = ipp_mask;
 }
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 void dce60_ipp_construct(
 	struct dce_ipp *ipp_dce,
 	struct dc_context *ctx,

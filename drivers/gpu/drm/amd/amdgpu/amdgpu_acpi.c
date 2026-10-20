@@ -1225,7 +1225,7 @@ int amdgpu_acpi_init(struct amdgpu_device *adev)
 
 	if (atif->notifications.brightness_change) {
 		if (adev->dc_enabled) {
-#if defined(CONFIG_DRM_AMD_DC)
+#if defined(CPTCFG_DRM_AMD_DC)
 			struct amdgpu_display_manager *dm = &adev->dm;
 
 			if (dm->backlight_dev[0])

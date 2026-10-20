@@ -392,7 +392,7 @@ static int gmc_v7_0_mc_init(struct amdgpu_device *adev)
 		default:
 			adev->gmc.gart_size = 256ULL << 20;
 			break;
-#ifdef CONFIG_DRM_AMDGPU_CIK
+#ifdef CPTCFG_DRM_AMDGPU_CIK
 		case CHIP_BONAIRE: /* UVD, VCE do not support GPUVM */
 		case CHIP_HAWAII:  /* UVD, VCE do not support GPUVM */
 		case CHIP_KAVERI:  /* UVD, VCE do not support GPUVM */

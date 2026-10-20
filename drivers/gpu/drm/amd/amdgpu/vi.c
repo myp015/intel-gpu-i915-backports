@@ -74,7 +74,7 @@
 #include "uvd_v5_0.h"
 #include "uvd_v6_0.h"
 #include "vce_v3_0.h"
-#if defined(CONFIG_DRM_AMD_ACP)
+#if defined(CPTCFG_DRM_AMD_ACP)
 #include "amdgpu_acp.h"
 #endif
 #include "amdgpu_vkms.h"
@@ -2100,7 +2100,7 @@ int vi_set_ip_blocks(struct amdgpu_device *adev)
 		amdgpu_device_ip_block_add(adev, &pp_smu_ip_block);
 		if (adev->enable_virtual_display)
 			amdgpu_device_ip_block_add(adev, &amdgpu_vkms_ip_block);
-#if defined(CONFIG_DRM_AMD_DC)
+#if defined(CPTCFG_DRM_AMD_DC)
 		else if (amdgpu_device_has_dc_support(adev))
 			amdgpu_device_ip_block_add(adev, &dm_ip_block);
 #endif
@@ -2120,7 +2120,7 @@ int vi_set_ip_blocks(struct amdgpu_device *adev)
 		amdgpu_device_ip_block_add(adev, &pp_smu_ip_block);
 		if (adev->enable_virtual_display)
 			amdgpu_device_ip_block_add(adev, &amdgpu_vkms_ip_block);
-#if defined(CONFIG_DRM_AMD_DC)
+#if defined(CPTCFG_DRM_AMD_DC)
 		else if (amdgpu_device_has_dc_support(adev))
 			amdgpu_device_ip_block_add(adev, &dm_ip_block);
 #endif
@@ -2143,7 +2143,7 @@ int vi_set_ip_blocks(struct amdgpu_device *adev)
 		amdgpu_device_ip_block_add(adev, &pp_smu_ip_block);
 		if (adev->enable_virtual_display)
 			amdgpu_device_ip_block_add(adev, &amdgpu_vkms_ip_block);
-#if defined(CONFIG_DRM_AMD_DC)
+#if defined(CPTCFG_DRM_AMD_DC)
 		else if (amdgpu_device_has_dc_support(adev))
 			amdgpu_device_ip_block_add(adev, &dm_ip_block);
 #endif
@@ -2161,7 +2161,7 @@ int vi_set_ip_blocks(struct amdgpu_device *adev)
 		amdgpu_device_ip_block_add(adev, &pp_smu_ip_block);
 		if (adev->enable_virtual_display)
 			amdgpu_device_ip_block_add(adev, &amdgpu_vkms_ip_block);
-#if defined(CONFIG_DRM_AMD_DC)
+#if defined(CPTCFG_DRM_AMD_DC)
 		else if (amdgpu_device_has_dc_support(adev))
 			amdgpu_device_ip_block_add(adev, &dm_ip_block);
 #endif
@@ -2169,7 +2169,7 @@ int vi_set_ip_blocks(struct amdgpu_device *adev)
 			amdgpu_device_ip_block_add(adev, &dce_v11_0_ip_block);
 		amdgpu_device_ip_block_add(adev, &uvd_v6_0_ip_block);
 		amdgpu_device_ip_block_add(adev, &vce_v3_1_ip_block);
-#if defined(CONFIG_DRM_AMD_ACP)
+#if defined(CPTCFG_DRM_AMD_ACP)
 		amdgpu_device_ip_block_add(adev, &acp_ip_block);
 #endif
 		break;
@@ -2182,7 +2182,7 @@ int vi_set_ip_blocks(struct amdgpu_device *adev)
 		amdgpu_device_ip_block_add(adev, &pp_smu_ip_block);
 		if (adev->enable_virtual_display)
 			amdgpu_device_ip_block_add(adev, &amdgpu_vkms_ip_block);
-#if defined(CONFIG_DRM_AMD_DC)
+#if defined(CPTCFG_DRM_AMD_DC)
 		else if (amdgpu_device_has_dc_support(adev))
 			amdgpu_device_ip_block_add(adev, &dm_ip_block);
 #endif
@@ -2190,7 +2190,7 @@ int vi_set_ip_blocks(struct amdgpu_device *adev)
 			amdgpu_device_ip_block_add(adev, &dce_v11_0_ip_block);
 		amdgpu_device_ip_block_add(adev, &uvd_v6_2_ip_block);
 		amdgpu_device_ip_block_add(adev, &vce_v3_4_ip_block);
-#if defined(CONFIG_DRM_AMD_ACP)
+#if defined(CPTCFG_DRM_AMD_ACP)
 		amdgpu_device_ip_block_add(adev, &acp_ip_block);
 #endif
 		break;

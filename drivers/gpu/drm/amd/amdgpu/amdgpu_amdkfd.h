@@ -187,7 +187,7 @@ struct amdgpu_amdkfd_fence *amdgpu_amdkfd_fence_create(u64 context,
 #if defined(CONFIG_DEBUG_FS)
 int kfd_debugfs_kfd_mem_limits(struct seq_file *m, void *data);
 #endif
-#if IS_ENABLED(CONFIG_HSA_AMD)
+#if IS_ENABLED(CPTCFG_HSA_AMD)
 bool amdkfd_fence_check_mm(struct dma_fence *f, struct mm_struct *mm);
 struct amdgpu_amdkfd_fence *to_amdgpu_amdkfd_fence(struct dma_fence *f);
 int amdgpu_amdkfd_remove_fence_on_pt_pd_bos(struct amdgpu_bo *bo);
@@ -345,7 +345,7 @@ u64 amdgpu_amdkfd_xcp_memory_size(struct amdgpu_device *adev, int xcp_id);
 #define KFD_XCP_MEMORY_SIZE(adev, xcp_id) amdgpu_amdkfd_xcp_memory_size((adev), (xcp_id))
 
 
-#if IS_ENABLED(CONFIG_HSA_AMD)
+#if IS_ENABLED(CPTCFG_HSA_AMD)
 void amdgpu_amdkfd_gpuvm_init_mem_limits(void);
 void amdgpu_amdkfd_gpuvm_destroy_cb(struct amdgpu_device *adev,
 				struct amdgpu_vm *vm);
@@ -375,7 +375,7 @@ void amdgpu_amdkfd_release_notify(struct amdgpu_bo *bo)
 }
 #endif
 
-#if IS_ENABLED(CONFIG_HSA_AMD_SVM)
+#if IS_ENABLED(CPTCFG_HSA_AMD_SVM)
 int kgd2kfd_init_zone_device(struct amdgpu_device *adev);
 #else
 static inline
@@ -390,7 +390,7 @@ int kgd2kfd_quiesce_mm(struct mm_struct *mm, uint32_t trigger);
 int kgd2kfd_resume_mm(struct mm_struct *mm);
 int kgd2kfd_schedule_evict_and_restore_process(struct mm_struct *mm,
 						struct dma_fence *fence);
-#if IS_ENABLED(CONFIG_HSA_AMD)
+#if IS_ENABLED(CPTCFG_HSA_AMD)
 int kgd2kfd_init(void);
 void kgd2kfd_exit(void);
 struct kfd_dev *kgd2kfd_probe(struct amdgpu_device *adev, bool vf);

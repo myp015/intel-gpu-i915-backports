@@ -41,7 +41,7 @@
 #define VCE_IDLE_TIMEOUT	msecs_to_jiffies(1000)
 
 /* Firmware Names */
-#ifdef CONFIG_DRM_AMDGPU_CIK
+#ifdef CPTCFG_DRM_AMDGPU_CIK
 #define FIRMWARE_BONAIRE	"amdgpu/bonaire_vce.bin"
 #define FIRMWARE_KABINI	"amdgpu/kabini_vce.bin"
 #define FIRMWARE_KAVERI	"amdgpu/kaveri_vce.bin"
@@ -61,7 +61,7 @@
 #define FIRMWARE_VEGA12		"amdgpu/vega12_vce.bin"
 #define FIRMWARE_VEGA20		"amdgpu/vega20_vce.bin"
 
-#ifdef CONFIG_DRM_AMDGPU_CIK
+#ifdef CPTCFG_DRM_AMDGPU_CIK
 MODULE_FIRMWARE(FIRMWARE_BONAIRE);
 MODULE_FIRMWARE(FIRMWARE_KABINI);
 MODULE_FIRMWARE(FIRMWARE_KAVERI);
@@ -103,7 +103,7 @@ int amdgpu_vce_sw_init(struct amdgpu_device *adev, unsigned long size)
 	int i, r;
 
 	switch (adev->asic_type) {
-#ifdef CONFIG_DRM_AMDGPU_CIK
+#ifdef CPTCFG_DRM_AMDGPU_CIK
 	case CHIP_BONAIRE:
 		fw_name = FIRMWARE_BONAIRE;
 		break;
@@ -865,7 +865,7 @@ int amdgpu_vce_ring_parse_cs(struct amdgpu_cs_parser *p,
 
 		case 0x0500000c: /* hw config */
 			switch (p->adev->asic_type) {
-#ifdef CONFIG_DRM_AMDGPU_CIK
+#ifdef CPTCFG_DRM_AMDGPU_CIK
 			case CHIP_KAVERI:
 			case CHIP_MULLINS:
 #endif

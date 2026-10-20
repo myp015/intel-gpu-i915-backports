@@ -40,7 +40,7 @@
  * Post-requisites: headers required by this unit
  */
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 #include "dce60/hw_translate_dce60.h"
 #endif
 #include "dce80/hw_translate_dce80.h"
@@ -63,7 +63,7 @@ bool dal_hw_translate_init(
 	enum dce_environment dce_environment)
 {
 	switch (dce_version) {
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 	case DCE_VERSION_6_0:
 	case DCE_VERSION_6_1:
 	case DCE_VERSION_6_4:

@@ -76,7 +76,7 @@
 	SRI(DP_DPHY_INTERNAL_CTRL, DP, id), \
 	SR(DCI_MEM_PWR_STATUS)
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 #define LE_DCE60_REG_LIST(id)\
 	SRI(DP_DPHY_INTERNAL_CTRL, DP, id), \
 	SR(DMCU_RAM_ACCESS_CTRL), \
@@ -199,7 +199,7 @@ void dce110_link_encoder_construct(
 	const struct dce110_link_enc_aux_registers *aux_regs,
 	const struct dce110_link_enc_hpd_registers *hpd_regs);
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 void dce60_link_encoder_construct(
 	struct dce110_link_encoder *enc110,
 	const struct encoder_init_data *init_data,

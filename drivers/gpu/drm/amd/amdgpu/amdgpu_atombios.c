@@ -1083,7 +1083,7 @@ int amdgpu_atombios_get_clock_dividers(struct amdgpu_device *adev,
 	return 0;
 }
 
-#ifdef CONFIG_DRM_AMDGPU_SI
+#ifdef CPTCFG_DRM_AMDGPU_SI
 int amdgpu_atombios_get_memory_pll_dividers(struct amdgpu_device *adev,
 					    u32 clock,
 					    bool strobe_mode,

@@ -38,7 +38,7 @@
 #include "dc/dc_dmub_srv.h"
 #include "link/protocols/link_dp_capability.h"
 
-#ifdef CONFIG_DRM_AMD_SECURE_DISPLAY
+#ifdef CPTCFG_DRM_AMD_SECURE_DISPLAY
 #include "amdgpu_dm_psr.h"
 #endif
 
@@ -3171,7 +3171,7 @@ void connector_debugfs_init(struct amdgpu_dm_connector *connector)
 	}
 }
 
-#ifdef CONFIG_DRM_AMD_SECURE_DISPLAY
+#ifdef CPTCFG_DRM_AMD_SECURE_DISPLAY
 /*
  * Set crc window coordinate x start
  */
@@ -3360,7 +3360,7 @@ DEFINE_DEBUGFS_ATTRIBUTE(crc_win_update_fops, crc_win_update_get,
 #endif
 void crtc_debugfs_init(struct drm_crtc *crtc)
 {
-#ifdef CONFIG_DRM_AMD_SECURE_DISPLAY
+#ifdef CPTCFG_DRM_AMD_SECURE_DISPLAY
 	struct dentry *dir = debugfs_lookup("crc", crtc->debugfs_entry);
 
 	if (!dir)

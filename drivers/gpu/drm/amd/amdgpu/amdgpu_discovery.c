@@ -1832,7 +1832,7 @@ static int amdgpu_discovery_set_smu_ip_blocks(struct amdgpu_device *adev)
 	return 0;
 }
 
-#if defined(CONFIG_DRM_AMD_DC)
+#if defined(CPTCFG_DRM_AMD_DC)
 static void amdgpu_discovery_set_sriov_display(struct amdgpu_device *adev)
 {
 	amdgpu_device_set_sriov_virtual_display(adev);
@@ -1850,7 +1850,7 @@ static int amdgpu_discovery_set_display_ip_blocks(struct amdgpu_device *adev)
 	if (!amdgpu_device_has_dc_support(adev))
 		return 0;
 
-#if defined(CONFIG_DRM_AMD_DC)
+#if defined(CPTCFG_DRM_AMD_DC)
 	if (adev->ip_versions[DCE_HWIP][0]) {
 		switch (adev->ip_versions[DCE_HWIP][0]) {
 		case IP_VERSION(1, 0, 0):

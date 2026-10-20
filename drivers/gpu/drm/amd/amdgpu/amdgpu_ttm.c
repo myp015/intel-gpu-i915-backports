@@ -636,7 +636,7 @@ struct amdgpu_ttm_tt {
 
 #define ttm_to_amdgpu_ttm_tt(ptr)	container_of(ptr, struct amdgpu_ttm_tt, ttm)
 
-#ifdef CONFIG_DRM_AMDGPU_USERPTR
+#ifdef CPTCFG_DRM_AMDGPU_USERPTR
 /*
  * amdgpu_ttm_tt_get_user_pages - get device accessible pages that back user
  * memory and start HMM tracking CPU page table update

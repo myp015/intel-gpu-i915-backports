@@ -460,7 +460,7 @@ static void set_dp_phy_pattern_hbr2_compliance_cp2520_2(
 	enable_phy_bypass_mode(enc110, false);
 }
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 static void dce60_set_dp_phy_pattern_hbr2_compliance_cp2520_2(
 	struct dce110_link_encoder *enc110,
 	unsigned int cp2520_pattern)
@@ -540,7 +540,7 @@ static void set_dp_phy_pattern_passthrough_mode(
 	disable_prbs_mode(enc110);
 }
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 static void dce60_set_dp_phy_pattern_passthrough_mode(
 	struct dce110_link_encoder *enc110,
 	enum dp_panel_mode panel_mode)
@@ -607,7 +607,7 @@ static void configure_encoder(
 	REG_UPDATE(DP_DPHY_SCRAM_CNTL, DPHY_SCRAMBLER_ADVANCE, 1);
 }
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 static void dce60_configure_encoder(
 	struct dce110_link_encoder *enc110,
 	const struct dc_link_settings *link_settings)
@@ -1192,7 +1192,7 @@ void dce110_link_encoder_enable_dp_mst_output(
 	}
 }
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 /* enables DP PHY output */
 static void dce60_link_encoder_enable_dp_output(
 	struct link_encoder *enc,
@@ -1422,7 +1422,7 @@ void dce110_link_encoder_dp_set_phy_pattern(
 	}
 }
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 /* set DP PHY test and training patterns */
 static void dce60_link_encoder_dp_set_phy_pattern(
 	struct link_encoder *enc,
@@ -1678,7 +1678,7 @@ void dce110_link_encoder_get_max_link_cap(struct link_encoder *enc,
 	*link_settings = max_link_cap;
 }
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 static const struct link_encoder_funcs dce60_lnk_enc_funcs = {
 	.validate_output_with_stream =
 		dce110_link_encoder_validate_output_with_stream,

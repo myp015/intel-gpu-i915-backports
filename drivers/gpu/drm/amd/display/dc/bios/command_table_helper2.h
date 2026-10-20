@@ -26,7 +26,7 @@
 #ifndef __DAL_COMMAND_TABLE_HELPER2_H__
 #define __DAL_COMMAND_TABLE_HELPER2_H__
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 #include "dce60/command_table_helper_dce60.h"
 #endif
 #include "dce80/command_table_helper_dce80.h"

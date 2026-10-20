@@ -64,7 +64,7 @@
 		SF(AZALIA_F0_CODEC_ENDPOINT_INDEX, AZALIA_ENDPOINT_REG_INDEX, mask_sh),\
 		SF(AZALIA_F0_CODEC_ENDPOINT_DATA, AZALIA_ENDPOINT_REG_DATA, mask_sh)
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 #define AUD_DCE60_MASK_SH_LIST(mask_sh)\
 		SF(DCCG_AUDIO_DTO_SOURCE, DCCG_AUDIO_DTO0_SOURCE_SEL, mask_sh),\
 		SF(DCCG_AUDIO_DTO_SOURCE, DCCG_AUDIO_DTO_SEL, mask_sh),\
@@ -151,7 +151,7 @@ struct audio *dce_audio_create(
 		const struct dce_audio_shift *shifts,
 		const struct dce_audio_mask *masks);
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 struct audio *dce60_audio_create(
 		struct dc_context *ctx,
 		unsigned int inst,

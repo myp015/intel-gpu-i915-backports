@@ -139,7 +139,7 @@ static void set_truncation(
 				params->flags.TRUNCATE_MODE);
 }
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 /*
  *	dce60_set_truncation
  *	1) set truncation depth: 0 for 18 bpp or 1 for 24 bpp
@@ -410,7 +410,7 @@ void dce110_opp_set_clamping(
 	}
 }
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 /*
  *	Set Clamping for DCE6 parts
  *	1) Set clamping format based on bpc - 0 for 6bpc (No clamping)
@@ -496,7 +496,7 @@ static void set_pixel_encoding(
 
 }
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 /*
  *	dce60_set_pixel_encoding
  *	DCE6 has no FMT_SUBSAMPLING_{MODE,ORDER} bits in FMT_CONTROL reg
@@ -540,7 +540,7 @@ void dce110_opp_program_bit_depth_reduction(
 	set_temporal_dither(opp110, params);
 }
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 static void dce60_opp_program_bit_depth_reduction(
 	struct output_pixel_processor *opp,
 	const struct bit_depth_reduction_params *params)
@@ -563,7 +563,7 @@ void dce110_opp_program_clamping_and_pixel_encoding(
 	set_pixel_encoding(opp110, params);
 }
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 static void dce60_opp_program_clamping_and_pixel_encoding(
 	struct output_pixel_processor *opp,
 	const struct clamping_and_pixel_encoding_params *params)
@@ -673,7 +673,7 @@ void dce110_opp_program_fmt(
 	return;
 }
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 static void dce60_opp_program_fmt(
 	struct output_pixel_processor *opp,
 	struct bit_depth_reduction_params *fmt_bit_depth,
@@ -713,7 +713,7 @@ static const struct opp_funcs funcs = {
 	.opp_program_bit_depth_reduction = dce110_opp_program_bit_depth_reduction
 };
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 static const struct opp_funcs dce60_opp_funcs = {
 	.opp_set_dyn_expansion = dce110_opp_set_dyn_expansion,
 	.opp_destroy = dce110_opp_destroy,
@@ -740,7 +740,7 @@ void dce110_opp_construct(struct dce110_opp *opp110,
 	opp110->opp_mask = opp_mask;
 }
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 void dce60_opp_construct(struct dce110_opp *opp110,
 	struct dc_context *ctx,
 	uint32_t inst,

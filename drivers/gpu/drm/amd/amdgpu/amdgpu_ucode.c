@@ -521,7 +521,7 @@ enum amdgpu_firmware_load_type
 amdgpu_ucode_get_load_type(struct amdgpu_device *adev, int load_type)
 {
 	switch (adev->asic_type) {
-#ifdef CONFIG_DRM_AMDGPU_SI
+#ifdef CPTCFG_DRM_AMDGPU_SI
 	case CHIP_TAHITI:
 	case CHIP_PITCAIRN:
 	case CHIP_VERDE:
@@ -529,7 +529,7 @@ amdgpu_ucode_get_load_type(struct amdgpu_device *adev, int load_type)
 	case CHIP_HAINAN:
 		return AMDGPU_FW_LOAD_DIRECT;
 #endif
-#ifdef CONFIG_DRM_AMDGPU_CIK
+#ifdef CPTCFG_DRM_AMDGPU_CIK
 	case CHIP_BONAIRE:
 	case CHIP_KAVERI:
 	case CHIP_KABINI:

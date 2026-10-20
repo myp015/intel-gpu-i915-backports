@@ -147,7 +147,7 @@
 	IPP_SF(DCP0_DEGAMMA_CONTROL, CURSOR_DEGAMMA_MODE, mask_sh), \
 	IPP_SF(DCP0_DEGAMMA_CONTROL, CURSOR2_DEGAMMA_MODE, mask_sh)
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 #define IPP_DCE60_MASK_SH_LIST_DCE_COMMON_BASE(mask_sh) \
 	IPP_SF(CUR_UPDATE, CURSOR_UPDATE_LOCK, mask_sh), \
 	IPP_SF(CUR_CONTROL, CURSOR_EN, mask_sh), \
@@ -273,7 +273,7 @@ void dce_ipp_construct(struct dce_ipp *ipp_dce,
 	const struct dce_ipp_shift *ipp_shift,
 	const struct dce_ipp_mask *ipp_mask);
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 void dce60_ipp_construct(struct dce_ipp *ipp_dce,
 	struct dc_context *ctx,
 	int inst,

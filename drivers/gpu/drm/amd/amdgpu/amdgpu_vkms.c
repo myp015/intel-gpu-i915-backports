@@ -5,10 +5,10 @@
 #include <drm/drm_vblank.h>
 
 #include "amdgpu.h"
-#ifdef CONFIG_DRM_AMDGPU_SI
+#ifdef CPTCFG_DRM_AMDGPU_SI
 #include "dce_v6_0.h"
 #endif
-#ifdef CONFIG_DRM_AMDGPU_CIK
+#ifdef CPTCFG_DRM_AMDGPU_CIK
 #include "dce_v8_0.h"
 #endif
 #include "dce_v10_0.h"
@@ -550,7 +550,7 @@ static int amdgpu_vkms_hw_init(void *handle)
 	struct amdgpu_device *adev = (struct amdgpu_device *)handle;
 
 	switch (adev->asic_type) {
-#ifdef CONFIG_DRM_AMDGPU_SI
+#ifdef CPTCFG_DRM_AMDGPU_SI
 	case CHIP_TAHITI:
 	case CHIP_PITCAIRN:
 	case CHIP_VERDE:
@@ -558,7 +558,7 @@ static int amdgpu_vkms_hw_init(void *handle)
 		dce_v6_0_disable_dce(adev);
 		break;
 #endif
-#ifdef CONFIG_DRM_AMDGPU_CIK
+#ifdef CPTCFG_DRM_AMDGPU_CIK
 	case CHIP_BONAIRE:
 	case CHIP_HAWAII:
 	case CHIP_KAVERI:
@@ -579,7 +579,7 @@ static int amdgpu_vkms_hw_init(void *handle)
 		dce_v11_0_disable_dce(adev);
 		break;
 	case CHIP_TOPAZ:
-#ifdef CONFIG_DRM_AMDGPU_SI
+#ifdef CPTCFG_DRM_AMDGPU_SI
 	case CHIP_HAINAN:
 #endif
 		/* no DCE */

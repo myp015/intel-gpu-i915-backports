@@ -640,7 +640,7 @@ static void dm_crtc_high_irq(void *interrupt_params)
 	spin_unlock_irqrestore(&adev_to_drm(adev)->event_lock, flags);
 }
 
-#if defined(CONFIG_DRM_AMD_SECURE_DISPLAY)
+#if defined(CPTCFG_DRM_AMD_SECURE_DISPLAY)
 /**
  * dm_dcn_vertical_interrupt0_high_irq() - Handles OTG Vertical interrupt0 for
  * DCN generation ASICs
@@ -661,7 +661,7 @@ static void dm_dcn_vertical_interrupt0_high_irq(void *interrupt_params)
 
 	amdgpu_dm_crtc_handle_crc_window_irq(&acrtc->base);
 }
-#endif /* CONFIG_DRM_AMD_SECURE_DISPLAY */
+#endif /* CPTCFG_DRM_AMD_SECURE_DISPLAY */
 
 /**
  * dmub_aux_setconfig_callback - Callback for AUX or SET_CONFIG command.
@@ -1849,7 +1849,7 @@ static int amdgpu_dm_init(struct amdgpu_device *adev)
 		goto error;
 	}
 
-#if defined(CONFIG_DRM_AMD_SECURE_DISPLAY)
+#if defined(CPTCFG_DRM_AMD_SECURE_DISPLAY)
 	adev->dm.secure_display_ctxs = amdgpu_dm_crtc_secure_display_create_contexts(adev);
 	if (!adev->dm.secure_display_ctxs)
 		DRM_ERROR("amdgpu: failed to initialize secure display contexts.\n");
@@ -1884,7 +1884,7 @@ static void amdgpu_dm_fini(struct amdgpu_device *adev)
 
 	amdgpu_dm_destroy_drm_device(&adev->dm);
 
-#if defined(CONFIG_DRM_AMD_SECURE_DISPLAY)
+#if defined(CPTCFG_DRM_AMD_SECURE_DISPLAY)
 	if (adev->dm.secure_display_ctxs) {
 		for (i = 0; i < adev->mode_info.num_crtc; i++) {
 			if (adev->dm.secure_display_ctxs[i].crtc) {
@@ -1961,7 +1961,7 @@ static int load_dmcu_fw(struct amdgpu_device *adev)
 	const struct dmcu_firmware_header_v1_0 *hdr;
 
 	switch (adev->asic_type) {
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 	case CHIP_TAHITI:
 	case CHIP_PITCAIRN:
 	case CHIP_VERDE:
@@ -3003,7 +3003,7 @@ static int dm_resume(void *handle)
  * DOC: DM Lifecycle
  *
  * DM (and consequently DC) is registered in the amdgpu base driver as a IP
- * block. When CONFIG_DRM_AMD_DC is enabled, the DM device IP block is added to
+ * block. When CPTCFG_DRM_AMD_DC is enabled, the DM device IP block is added to
  * the base driver's device list to be initialized and torn down accordingly.
  *
  * The functions to do so are provided as hooks in &struct amd_ip_funcs.
@@ -3506,7 +3506,7 @@ static void register_hpd_handlers(struct amdgpu_device *adev)
 	}
 }
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 /* Register IRQ sources and initialize IRQ callbacks */
 static int dce60_register_irq_handlers(struct amdgpu_device *adev)
 {
@@ -3704,7 +3704,7 @@ static int dcn10_register_irq_handlers(struct amdgpu_device *adev)
 	struct dc_interrupt_params int_params = {0};
 	int r;
 	int i;
-#if defined(CONFIG_DRM_AMD_SECURE_DISPLAY)
+#if defined(CPTCFG_DRM_AMD_SECURE_DISPLAY)
 	static const unsigned int vrtl_int_srcid[] = {
 		DCN_1_0__SRCID__OTG1_VERTICAL_INTERRUPT0_CONTROL,
 		DCN_1_0__SRCID__OTG2_VERTICAL_INTERRUPT0_CONTROL,
@@ -3755,7 +3755,7 @@ static int dcn10_register_irq_handlers(struct amdgpu_device *adev)
 	}
 
 	/* Use otg vertical line interrupt */
-#if defined(CONFIG_DRM_AMD_SECURE_DISPLAY)
+#if defined(CPTCFG_DRM_AMD_SECURE_DISPLAY)
 	for (i = 0; i <= adev->mode_info.num_crtc - 1; i++) {
 		r = amdgpu_irq_add_id(adev, SOC15_IH_CLIENTID_DCE,
 				vrtl_int_srcid[i], &adev->vline0_irq);
@@ -4501,7 +4501,7 @@ static int amdgpu_dm_initialize_drm_device(struct amdgpu_device *adev)
 
 	/* Software is initialized. Now we can register interrupt handlers. */
 	switch (adev->asic_type) {
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 	case CHIP_TAHITI:
 	case CHIP_PITCAIRN:
 	case CHIP_VERDE:
@@ -4608,7 +4608,7 @@ static const struct amdgpu_display_funcs dm_display_funcs = {
 	.add_connector = NULL, /* VBIOS parsing. DAL does it. */
 };
 
-#if defined(CONFIG_DEBUG_KERNEL_DC)
+#if defined(CPTCFG_DEBUG_KERNEL_DC)
 
 static ssize_t s3_debug_store(struct device *device,
 			      struct device_attribute *attr,
@@ -4708,7 +4708,7 @@ static int dm_early_init(void *handle)
 	}
 
 	switch (adev->asic_type) {
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 	case CHIP_TAHITI:
 	case CHIP_PITCAIRN:
 	case CHIP_VERDE:
@@ -4826,7 +4826,7 @@ static int dm_early_init(void *handle)
 	 * adev->audio_endpt_wreg because they are initialised in
 	 * amdgpu_device_init()
 	 */
-#if defined(CONFIG_DEBUG_KERNEL_DC)
+#if defined(CPTCFG_DEBUG_KERNEL_DC)
 	device_create_file(
 		adev_to_drm(adev)->dev,
 		&dev_attr_s3_debug);
@@ -7594,14 +7594,14 @@ static void manage_dm_interrupts(struct amdgpu_device *adev,
 			adev,
 			&adev->pageflip_irq,
 			irq_type);
-#if defined(CONFIG_DRM_AMD_SECURE_DISPLAY)
+#if defined(CPTCFG_DRM_AMD_SECURE_DISPLAY)
 		amdgpu_irq_get(
 			adev,
 			&adev->vline0_irq,
 			irq_type);
 #endif
 	} else {
-#if defined(CONFIG_DRM_AMD_SECURE_DISPLAY)
+#if defined(CPTCFG_DRM_AMD_SECURE_DISPLAY)
 		amdgpu_irq_put(
 			adev,
 			&adev->vline0_irq,
@@ -8127,7 +8127,7 @@ static void amdgpu_dm_commit_planes(struct drm_atomic_state *state,
 			 */
 			if (acrtc_state->stream->link->psr_settings.psr_version >= DC_PSR_VERSION_SU_1 &&
 			    acrtc_attach->dm_irq_params.allow_psr_entry &&
-#ifdef CONFIG_DRM_AMD_SECURE_DISPLAY
+#ifdef CPTCFG_DRM_AMD_SECURE_DISPLAY
 			    !amdgpu_dm_crc_window_is_activated(acrtc_state->base.crtc) &&
 #endif
 			    dirty_rects_changed) {
@@ -8367,7 +8367,7 @@ static void amdgpu_dm_commit_planes(struct drm_atomic_state *state,
 			 */
 			if (acrtc_state->stream->link->psr_settings.psr_version >= DC_PSR_VERSION_SU_1 &&
 			    acrtc_attach->dm_irq_params.allow_psr_entry &&
-#ifdef CONFIG_DRM_AMD_SECURE_DISPLAY
+#ifdef CPTCFG_DRM_AMD_SECURE_DISPLAY
 			    !amdgpu_dm_crc_window_is_activated(acrtc_state->base.crtc) &&
 #endif
 			    !acrtc_state->stream->link->psr_settings.psr_allow_active &&
@@ -8910,7 +8910,7 @@ static void amdgpu_dm_atomic_commit_tail(struct drm_atomic_state *state)
 			 * settings for the stream.
 			 */
 			if (amdgpu_dm_is_valid_crc_source(cur_crc_src)) {
-#if defined(CONFIG_DRM_AMD_SECURE_DISPLAY)
+#if defined(CPTCFG_DRM_AMD_SECURE_DISPLAY)
 				if (amdgpu_dm_crc_window_is_activated(crtc)) {
 					spin_lock_irqsave(&adev_to_drm(adev)->event_lock, flags);
 					acrtc->dm_irq_params.window_param.update_win = true;

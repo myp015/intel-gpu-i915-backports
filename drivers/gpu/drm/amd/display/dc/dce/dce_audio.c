@@ -872,7 +872,7 @@ void dce_aud_wall_dto_setup(
 	}
 }
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 static void dce60_aud_wall_dto_setup(
 	struct audio *audio,
 	enum signal_type signal,
@@ -1024,7 +1024,7 @@ static const struct audio_funcs funcs = {
 	.destroy = dce_aud_destroy,
 };
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 static const struct audio_funcs dce60_funcs = {
 	.endpoint_valid = dce_aud_endpoint_valid,
 	.hw_init = dce_aud_hw_init,
@@ -1069,7 +1069,7 @@ struct audio *dce_audio_create(
 	return &audio->base;
 }
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 struct audio *dce60_audio_create(
 		struct dc_context *ctx,
 		unsigned int inst,

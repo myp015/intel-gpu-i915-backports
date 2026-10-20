@@ -150,7 +150,7 @@ struct clk_mgr *dc_clk_mgr_create(struct dc_context *ctx, struct pp_smu_funcs *p
 	struct hw_asic_id asic_id = ctx->asic_id;
 
 	switch (asic_id.chip_family) {
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 	case FAMILY_SI: {
 		struct clk_mgr_internal *clk_mgr = kzalloc(sizeof(*clk_mgr), GFP_KERNEL);
 
@@ -221,7 +221,7 @@ struct clk_mgr *dc_clk_mgr_create(struct dc_context *ctx, struct pp_smu_funcs *p
 			dce120_clk_mgr_construct(ctx, clk_mgr);
 		return &clk_mgr->base;
 	}
-#if defined(CONFIG_DRM_AMD_DC_FP)
+#if defined(CPTCFG_DRM_AMD_DC_FP)
 	case FAMILY_RV: {
 		struct clk_mgr_internal *clk_mgr = kzalloc(sizeof(*clk_mgr), GFP_KERNEL);
 
@@ -351,7 +351,7 @@ struct clk_mgr *dc_clk_mgr_create(struct dc_context *ctx, struct pp_smu_funcs *p
 	}
 	break;
 
-#endif /* CONFIG_DRM_AMD_DC_FP - Family RV */
+#endif /* CPTCFG_DRM_AMD_DC_FP - Family RV */
 	default:
 		ASSERT(0); /* Unknown Asic */
 		break;
@@ -364,7 +364,7 @@ void dc_destroy_clk_mgr(struct clk_mgr *clk_mgr_base)
 {
 	struct clk_mgr_internal *clk_mgr = TO_CLK_MGR_INTERNAL(clk_mgr_base);
 
-#ifdef CONFIG_DRM_AMD_DC_FP
+#ifdef CPTCFG_DRM_AMD_DC_FP
 	switch (clk_mgr_base->ctx->asic_id.chip_family) {
 	case FAMILY_NV:
 		if (ASICREV_IS_SIENNA_CICHLID_P(clk_mgr_base->ctx->asic_id.hw_internal_rev)) {
@@ -405,7 +405,7 @@ void dc_destroy_clk_mgr(struct clk_mgr *clk_mgr_base)
 	default:
 		break;
 	}
-#endif /* CONFIG_DRM_AMD_DC_FP */
+#endif /* CPTCFG_DRM_AMD_DC_FP */
 
 	kfree(clk_mgr);
 }

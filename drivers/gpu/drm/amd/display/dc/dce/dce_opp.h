@@ -81,7 +81,7 @@ enum dce110_opp_reg_type {
 	OPP_COMMON_REG_LIST_BASE(id), \
 	SRI(CONTROL, FMT_MEMORY, id)
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 #define OPP_DCE_60_REG_LIST(id) \
 	SRI(FMT_DYNAMIC_EXP_CNTL, FMT, id), \
 	SRI(FMT_BIT_DEPTH_CONTROL, FMT, id), \
@@ -202,7 +202,7 @@ enum dce110_opp_reg_type {
 	OPP_SF(FMT0_FMT_CONTROL, FMT_SUBSAMPLING_ORDER, mask_sh),\
 	OPP_SF(FMT0_FMT_CONTROL, FMT_CBCR_BIT_REDUCTION_BYPASS, mask_sh)
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 #define OPP_COMMON_MASK_SH_LIST_DCE_60(mask_sh)\
 	OPP_SF(FMT_DYNAMIC_EXP_CNTL, FMT_DYNAMIC_EXP_EN, mask_sh),\
 	OPP_SF(FMT_DYNAMIC_EXP_CNTL, FMT_DYNAMIC_EXP_MODE, mask_sh),\
@@ -317,7 +317,7 @@ void dce110_opp_construct(struct dce110_opp *opp110,
 	const struct dce_opp_shift *opp_shift,
 	const struct dce_opp_mask *opp_mask);
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 void dce60_opp_construct(struct dce110_opp *opp110,
 	struct dc_context *ctx,
 	uint32_t inst,

@@ -926,7 +926,7 @@ static bool dcn10_recv_edid_cea_ack(struct dmcu *dmcu, int *offset)
 }
 
 
-#if defined(CONFIG_DRM_AMD_SECURE_DISPLAY)
+#if defined(CPTCFG_DRM_AMD_SECURE_DISPLAY)
 static void dcn10_forward_crc_window(struct dmcu *dmcu,
 					struct rect *rect,
 					struct otg_phy_mux *mux_mapping)
@@ -1032,7 +1032,7 @@ static const struct dmcu_funcs dcn10_funcs = {
 	.send_edid_cea = dcn10_send_edid_cea,
 	.recv_amd_vsdb = dcn10_recv_amd_vsdb,
 	.recv_edid_cea_ack = dcn10_recv_edid_cea_ack,
-#if defined(CONFIG_DRM_AMD_SECURE_DISPLAY)
+#if defined(CPTCFG_DRM_AMD_SECURE_DISPLAY)
 	.forward_crc_window = dcn10_forward_crc_window,
 	.stop_crc_win_update = dcn10_stop_crc_win_update,
 #endif

@@ -174,7 +174,7 @@ static void program_urgency_watermark(
 		URGENCY_HIGH_WATERMARK, urgency_high_wm);
 }
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 static void dce60_program_urgency_watermark(
 	struct dce_mem_input *dce_mi,
 	uint32_t wm_select,
@@ -209,7 +209,7 @@ static void dce120_program_urgency_watermark(
 
 }
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 static void dce60_program_nbp_watermark(
 	struct dce_mem_input *dce_mi,
 	uint32_t wm_select,
@@ -260,7 +260,7 @@ static void program_nbp_watermark(
 	}
 }
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 static void dce60_program_stutter_watermark(
 	struct dce_mem_input *dce_mi,
 	uint32_t wm_select,
@@ -335,7 +335,7 @@ static void dce_mi_program_display_marks(
 	program_stutter_watermark(dce_mi, 1, stutter_exit.d_mark); /* set d */
 }
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 static void dce60_mi_program_display_marks(
 	struct mem_input *mi,
 	struct dce_watermarks nbp,
@@ -523,7 +523,7 @@ static void program_size_and_rotation(
 			GRPH_ROTATION_ANGLE, rotation_angles[rotation]);
 }
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 static void dce60_program_size(
 	struct dce_mem_input *dce_mi,
 	enum dc_rotation_angle rotation, /* not used in DCE6 */
@@ -647,7 +647,7 @@ static void dce_mi_program_surface_config(
 		program_grph_pixel_format(dce_mi, format);
 }
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 static void dce60_mi_program_surface_config(
 	struct mem_input *mi,
 	enum surface_pixel_format format,
@@ -889,7 +889,7 @@ static const struct mem_input_funcs dce_mi_funcs = {
 	.mem_input_is_flip_pending = dce_mi_is_flip_pending
 };
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 static const struct mem_input_funcs dce60_mi_funcs = {
 	.mem_input_program_display_marks = dce60_mi_program_display_marks,
 	.allocate_mem_input = dce_mi_allocate_dmif,
@@ -945,7 +945,7 @@ void dce_mem_input_construct(
 	dce_mi->masks = mi_mask;
 }
 
-#if defined(CONFIG_DRM_AMD_DC_SI)
+#if defined(CPTCFG_DRM_AMD_DC_SI)
 void dce60_mem_input_construct(
 	struct dce_mem_input *dce_mi,
 	struct dc_context *ctx,

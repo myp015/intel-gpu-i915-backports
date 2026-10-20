@@ -559,7 +559,7 @@ uint32_t amdgpu_display_supported_domains(struct amdgpu_device *adev,
 {
 	uint32_t domain = AMDGPU_GEM_DOMAIN_VRAM;
 
-#if defined(CONFIG_DRM_AMD_DC)
+#if defined(CPTCFG_DRM_AMD_DC)
 	/*
 	 * if amdgpu_bo_support_uswc returns false it means that USWC mappings
 	 * is not supported for this board. But this mapping is required

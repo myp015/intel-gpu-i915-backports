@@ -493,7 +493,7 @@ bool dc_stream_get_crtc_position(struct dc *dc,
 	return ret;
 }
 
-#if defined(CONFIG_DRM_AMD_SECURE_DISPLAY)
+#if defined(CPTCFG_DRM_AMD_SECURE_DISPLAY)
 static inline void
 dc_stream_forward_dmub_crc_window(struct dc_dmub_srv *dmub_srv,
 		struct rect *rect, struct otg_phy_mux *mux_mapping, bool is_stop)
@@ -566,7 +566,7 @@ dc_stream_forward_crc_window(struct dc_stream_state *stream,
 
 	return true;
 }
-#endif /* CONFIG_DRM_AMD_SECURE_DISPLAY */
+#endif /* CPTCFG_DRM_AMD_SECURE_DISPLAY */
 
 /**
  * dc_stream_configure_crc() - Configure CRC capture for the given stream.
@@ -998,7 +998,7 @@ static bool dc_construct(struct dc *dc,
 	dc->clk_mgr = dc_clk_mgr_create(dc->ctx, dc->res_pool->pp_smu, dc->res_pool->dccg);
 	if (!dc->clk_mgr)
 		goto fail;
-#ifdef CONFIG_DRM_AMD_DC_FP
+#ifdef CPTCFG_DRM_AMD_DC_FP
 	dc->clk_mgr->force_smu_not_present = init_params->force_smu_not_present;
 
 	if (dc->res_pool->funcs->update_bw_bounding_box) {

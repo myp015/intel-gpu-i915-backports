@@ -39,7 +39,7 @@ enum amdgpu_dm_pipe_crc_source {
 	AMDGPU_DM_PIPE_CRC_SOURCE_INVALID = -1,
 };
 
-#ifdef CONFIG_DRM_AMD_SECURE_DISPLAY
+#ifdef CPTCFG_DRM_AMD_SECURE_DISPLAY
 struct crc_window_param {
 	uint16_t x_start;
 	uint16_t y_start;
@@ -92,7 +92,7 @@ void amdgpu_dm_crtc_handle_crc_irq(struct drm_crtc *crtc);
 #define amdgpu_dm_crtc_handle_crc_irq(x)
 #endif
 
-#ifdef CONFIG_DRM_AMD_SECURE_DISPLAY
+#ifdef CPTCFG_DRM_AMD_SECURE_DISPLAY
 bool amdgpu_dm_crc_window_is_activated(struct drm_crtc *crtc);
 void amdgpu_dm_crtc_handle_crc_window_irq(struct drm_crtc *crtc);
 struct secure_display_context *amdgpu_dm_crtc_secure_display_create_contexts(

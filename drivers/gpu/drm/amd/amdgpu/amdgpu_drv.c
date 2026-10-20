@@ -581,13 +581,13 @@ module_param_named(timeout_period, amdgpu_watchdog_timer.period, uint, 0644);
 
 /**
  * DOC: si_support (int)
- * Set SI support driver. This parameter works after set config CONFIG_DRM_AMDGPU_SI. For SI asic, when radeon driver is enabled,
+ * Set SI support driver. This parameter works after set config CPTCFG_DRM_AMDGPU_SI. For SI asic, when radeon driver is enabled,
  * set value 0 to use radeon driver, while set value 1 to use amdgpu driver. The default is using radeon driver when it available,
  * otherwise using amdgpu driver.
  */
-#ifdef CONFIG_DRM_AMDGPU_SI
+#ifdef CPTCFG_DRM_AMDGPU_SI
 
-#if defined(CONFIG_DRM_RADEON) || defined(CONFIG_DRM_RADEON_MODULE)
+#if defined(CPTCFG_DRM_RADEON) || defined(CPTCFG_DRM_RADEON_MODULE)
 int amdgpu_si_support = 0;
 MODULE_PARM_DESC(si_support, "SI support (1 = enabled, 0 = disabled (default))");
 #else
@@ -600,13 +600,13 @@ module_param_named(si_support, amdgpu_si_support, int, 0444);
 
 /**
  * DOC: cik_support (int)
- * Set CIK support driver. This parameter works after set config CONFIG_DRM_AMDGPU_CIK. For CIK asic, when radeon driver is enabled,
+ * Set CIK support driver. This parameter works after set config CPTCFG_DRM_AMDGPU_CIK. For CIK asic, when radeon driver is enabled,
  * set value 0 to use radeon driver, while set value 1 to use amdgpu driver. The default is using radeon driver when it available,
  * otherwise using amdgpu driver.
  */
-#ifdef CONFIG_DRM_AMDGPU_CIK
+#ifdef CPTCFG_DRM_AMDGPU_CIK
 
-#if defined(CONFIG_DRM_RADEON) || defined(CONFIG_DRM_RADEON_MODULE)
+#if defined(CPTCFG_DRM_RADEON) || defined(CPTCFG_DRM_RADEON_MODULE)
 int amdgpu_cik_support = 0;
 MODULE_PARM_DESC(cik_support, "CIK support (1 = enabled, 0 = disabled (default))");
 #else
@@ -697,7 +697,7 @@ MODULE_PARM_DESC(use_xgmi_p2p,
 module_param_named(use_xgmi_p2p, amdgpu_use_xgmi_p2p, int, 0444);
 
 
-#ifdef CONFIG_HSA_AMD
+#ifdef CPTCFG_HSA_AMD
 /**
  * DOC: sched_policy (int)
  * Set scheduling policy. Default is HWS(hardware scheduling) with over-subscription.
@@ -837,7 +837,7 @@ module_param_named(mtype_local, amdgpu_mtype_local, int, 0444);
  * DOC: pcie_p2p (bool)
  * Enable PCIe P2P (requires large-BAR). Default value: true (on)
  */
-#ifdef CONFIG_HSA_AMD_P2P
+#ifdef CPTCFG_HSA_AMD_P2P
 bool pcie_p2p = true;
 module_param(pcie_p2p, bool, 0444);
 MODULE_PARM_DESC(pcie_p2p, "Enable PCIe P2P (requires large-BAR). (N = off, Y = on(default))");
@@ -1697,7 +1697,7 @@ static const u16 amdgpu_unsupported_pciidlist[] = {
 };
 
 static const struct pci_device_id pciidlist[] = {
-#ifdef CONFIG_DRM_AMDGPU_SI
+#ifdef CPTCFG_DRM_AMDGPU_SI
 	{0x1002, 0x6780, PCI_ANY_ID, PCI_ANY_ID, 0, 0, CHIP_TAHITI},
 	{0x1002, 0x6784, PCI_ANY_ID, PCI_ANY_ID, 0, 0, CHIP_TAHITI},
 	{0x1002, 0x6788, PCI_ANY_ID, PCI_ANY_ID, 0, 0, CHIP_TAHITI},
@@ -1771,7 +1771,7 @@ static const struct pci_device_id pciidlist[] = {
 	{0x1002, 0x6667, PCI_ANY_ID, PCI_ANY_ID, 0, 0, CHIP_HAINAN|AMD_IS_MOBILITY},
 	{0x1002, 0x666F, PCI_ANY_ID, PCI_ANY_ID, 0, 0, CHIP_HAINAN|AMD_IS_MOBILITY},
 #endif
-#ifdef CONFIG_DRM_AMDGPU_CIK
+#ifdef CPTCFG_DRM_AMDGPU_CIK
 	/* Kaveri */
 	{0x1002, 0x1304, PCI_ANY_ID, PCI_ANY_ID, 0, 0, CHIP_KAVERI|AMD_IS_MOBILITY|AMD_IS_APU},
 	{0x1002, 0x1305, PCI_ANY_ID, PCI_ANY_ID, 0, 0, CHIP_KAVERI|AMD_IS_APU},
@@ -2136,7 +2136,7 @@ static int amdgpu_pci_probe(struct pci_dev *pdev,
 		return -ENOTSUPP;
 	}
 
-#ifdef CONFIG_DRM_AMDGPU_SI
+#ifdef CPTCFG_DRM_AMDGPU_SI
 	if (!amdgpu_si_support) {
 		switch (flags & AMD_ASIC_MASK) {
 		case CHIP_TAHITI:
@@ -2153,7 +2153,7 @@ static int amdgpu_pci_probe(struct pci_dev *pdev,
 		}
 	}
 #endif
-#ifdef CONFIG_DRM_AMDGPU_CIK
+#ifdef CPTCFG_DRM_AMDGPU_CIK
 	if (!amdgpu_cik_support) {
 		switch (flags & AMD_ASIC_MASK) {
 		case CHIP_KAVERI:
@@ -2945,7 +2945,7 @@ static int __init amdgpu_init(void)
 	amdgpu_register_atpx_handler();
 	amdgpu_acpi_detect();
 
-	/* Ignore KFD init failures. Normal when CONFIG_HSA_AMD is not set. */
+	/* Ignore KFD init failures. Normal when CPTCFG_HSA_AMD is not set. */
 	amdgpu_amdkfd_init();
 
 	/* let modprobe override vga console setting */

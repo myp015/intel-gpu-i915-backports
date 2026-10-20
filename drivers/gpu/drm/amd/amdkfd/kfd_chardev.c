@@ -1070,7 +1070,7 @@ static int kfd_ioctl_alloc_memory_of_gpu(struct file *filep,
 	if (args->size == 0)
 		return -EINVAL;
 
-#if IS_ENABLED(CONFIG_HSA_AMD_SVM)
+#if IS_ENABLED(CPTCFG_HSA_AMD_SVM)
 	/* Flush pending deferred work to avoid racing with deferred actions
 	 * from previous memory map changes (e.g. munmap).
 	 */
@@ -1682,7 +1682,7 @@ static int kfd_ioctl_smi_events(struct file *filep,
 	return kfd_smi_event_open(pdd->dev, &args->anon_fd);
 }
 
-#if IS_ENABLED(CONFIG_HSA_AMD_SVM)
+#if IS_ENABLED(CPTCFG_HSA_AMD_SVM)
 
 static int kfd_ioctl_set_xnack_mode(struct file *filep,
 				    struct kfd_process *p, void *data)

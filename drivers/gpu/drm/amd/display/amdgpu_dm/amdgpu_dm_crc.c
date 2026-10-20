@@ -82,7 +82,7 @@ const char *const *amdgpu_dm_crtc_get_crc_sources(struct drm_crtc *crtc,
 	return pipe_crc_sources;
 }
 
-#ifdef CONFIG_DRM_AMD_SECURE_DISPLAY
+#ifdef CPTCFG_DRM_AMD_SECURE_DISPLAY
 static void amdgpu_dm_set_crc_window_default(struct drm_crtc *crtc, struct dc_stream_state *stream)
 {
 	struct drm_device *drm_dev = crtc->dev;
@@ -356,7 +356,7 @@ int amdgpu_dm_crtc_set_crc_source(struct drm_crtc *crtc, const char *src_name)
 
 	}
 
-#if defined(CONFIG_DRM_AMD_SECURE_DISPLAY)
+#if defined(CPTCFG_DRM_AMD_SECURE_DISPLAY)
 	/* Reset secure_display when we change crc source from debugfs */
 	amdgpu_dm_set_crc_window_default(crtc, crtc_state->stream);
 #endif
@@ -464,7 +464,7 @@ void amdgpu_dm_crtc_handle_crc_irq(struct drm_crtc *crtc)
 	}
 }
 
-#if defined(CONFIG_DRM_AMD_SECURE_DISPLAY)
+#if defined(CPTCFG_DRM_AMD_SECURE_DISPLAY)
 void amdgpu_dm_crtc_handle_crc_window_irq(struct drm_crtc *crtc)
 {
 	struct drm_device *drm_dev = NULL;
