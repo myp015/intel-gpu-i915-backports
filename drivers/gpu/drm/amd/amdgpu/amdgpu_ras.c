@@ -38,7 +38,14 @@
 #include "atom.h"
 #include "amdgpu_reset.h"
 
-#ifdef CONFIG_X86_MCE_AMD
+/*
+ * Task#202：MCE 坏页通知整条链路（notifier_registered / 声明 / 调用点 / 定义）
+ * 必须用同一个条件，否则会出现「调用在、定义不在」的链接期未定义符号。
+ * DSM 5.10 的 <asm/mce.h> 缺 smca_get_bank_type/SMCA_UMC_V2（6.0 才进内核头），
+ * 故 < 6.0 一律编掉，AMD 平台退化为不注册坏页 MCA 通知（仅影响页面退休告警，
+ * 不影响驱动加载与显卡功能）。
+ */
+#if defined(CONFIG_X86_MCE_AMD) && LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)
 #include <asm/mce.h>
 
 static bool notifier_registered;
@@ -126,7 +133,7 @@ static bool amdgpu_ras_check_bad_page_unlock(struct amdgpu_ras *con,
 				uint64_t addr);
 static bool amdgpu_ras_check_bad_page(struct amdgpu_device *adev,
 				uint64_t addr);
-#ifdef CONFIG_X86_MCE_AMD
+#if defined(CONFIG_X86_MCE_AMD) && LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)
 static void amdgpu_register_bad_pages_mca_notifier(struct amdgpu_device *adev);
 struct mce_notifier_adev_list {
 	struct amdgpu_device *devs[MAX_GPU_INSTANCE];
@@ -2358,7 +2365,7 @@ int amdgpu_ras_recovery_init(struct amdgpu_device *adev)
 		}
 	}
 
-#ifdef CONFIG_X86_MCE_AMD
+#if defined(CONFIG_X86_MCE_AMD) && LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)
 	if ((adev->asic_type == CHIP_ALDEBARAN) &&
 	    (adev->gmc.xgmi.connected_to_cpu))
 		amdgpu_register_bad_pages_mca_notifier(adev);
