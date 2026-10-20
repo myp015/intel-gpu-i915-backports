@@ -860,6 +860,23 @@ void drm_dp_remove_payload_part2(struct drm_dp_mst_topology_mgr *mgr,
 				 const struct drm_dp_mst_atomic_payload *old_payload,
 				 struct drm_dp_mst_atomic_payload *new_payload);
 
+/*
+ * Task#202：v6.5 的 amdgpu 调用单函数 drm_dp_remove_payload()，而本 fork
+ * 的 drm 核心已改为 part1/part2 拆分接口。按 v6.5 语义（远端移除 + 本地
+ * 时隙回收；分配失败即 vc_start_slot == -1 时不做任何事）用两步调用实现。
+ */
+static inline void drm_dp_remove_payload(struct drm_dp_mst_topology_mgr *mgr,
+					 struct drm_dp_mst_topology_state *mst_state,
+					 const struct drm_dp_mst_atomic_payload *old_payload,
+					 struct drm_dp_mst_atomic_payload *new_payload)
+{
+	if (new_payload->vc_start_slot == -1)
+		return;
+
+	drm_dp_remove_payload_part1(mgr, mst_state, new_payload);
+	drm_dp_remove_payload_part2(mgr, mst_state, old_payload, new_payload);
+}
+
 int drm_dp_check_act_status(struct drm_dp_mst_topology_mgr *mgr);
 
 void drm_dp_mst_dump_topology(struct seq_file *m,

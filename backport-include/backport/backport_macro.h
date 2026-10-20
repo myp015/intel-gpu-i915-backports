@@ -11,6 +11,15 @@
 #undef CONFIG_BACKLIGHT_CLASS_DEVICE_MODULE
 #endif
 
+/*
+ * Task#202：BPM_DRM_DP_CALC_PBN_MODE_DSC_PRESENT 描述的是「本 fork 内置的
+ * drm 核心」的能力，而不是目标内核的能力，因此不放进任何
+ * LINUX_VERSION_* 条件块。核心已同步到 v6.5 的
+ * drm_dp_calc_pbn_mode(clock, bpp, dsc) 三参数接口（DSC 时 bpp 为 1/16
+ * 单位）。i915 据此选择新调用形式，amdgpu 6.5 也要求三参数。
+ */
+#define BPM_DRM_DP_CALC_PBN_MODE_DSC_PRESENT
+
 #if LINUX_VERSION_IS_GEQ(6,7,0)
 /*
  * 583cc9e4109529
@@ -152,13 +161,6 @@
  */
 
 #define BPM_DRM_DP_128B132B_API_PRESENT
-
-/*
- * Task#202：本 fork 内置的 drm 核心已同步到 v6.5 的
- * drm_dp_calc_pbn_mode(clock, bpp, dsc) 三参数接口（DSC 时 bpp 为 1/16
- * 单位）。i915 侧据此选择新调用形式，amdgpu 6.5 也要求三参数。
- */
-#define BPM_DRM_DP_CALC_PBN_MODE_DSC_PRESENT
 /*
  * 68189fef88c7 fs: Change try_to_free_buffers() to take a folio
  */
@@ -1372,5 +1374,15 @@
 #define BPM_DRM_DP_DSC_SINK_SUPPORTS_FORMAT_NOT_PRESENT
 #endif
 #endif
+
+/*
+ * Task#202：本 fork 内置的 drm 核心使用 5aa1dfcdf0a429 之后的
+ * drm_dp_remove_payload_part1/part2 拆分接口（含
+ * payload_allocation_status 状态机），没有旧的单函数
+ * drm_dp_remove_payload()。上面的 LINUX_VERSION_IS_LESS(6,7,0) 条件在
+ * 目标内核 5.10 上会误判为「有」，使 i915 走旧调用路径，故在此强制取消。
+ * 6.5 版 amdgpu 的单函数调用由 drm-include 里的兼容内联实现。
+ */
+#undef BPM_DRM_DP_REMOVE_PAYLOAD_AVAILABLE
 
 #endif /* BP_LINUX_BACKPORT_MACRO_H */
