@@ -394,8 +394,14 @@ int radeon_cs_parser_init(struct radeon_cs_parser *p, void *data)
 	return 0;
 }
 
-/* Task#202：6.5 起 list_sort 的回调改为 list_cmp_func_t（参数带 const） */
-#if LINUX_VERSION_IS_LESS(6,5,0)
+/*
+ * Task#202：list_sort 回调在 4f0f586bf0c8 后改用带 const 的 list_cmp_func_t。
+ * 用 backport 框架的特性宏判断，而不是版本号：群晖各平台 5.10.55 内核头
+ * 并不统一（CONFIG_SYNO_EPYC7003NTB 已回填带 const 的原型，其余平台没有），
+ * 只看版本号会让 ntb 平台报 incompatible-pointer-types（其内核开了
+ * CONFIG_WERROR，直接编译失败）。i915/drm 侧同款写法可对照。
+ */
+#ifdef BPM_LIST_CMP_FUNC_T_NOT_PRESENT
 static int cmp_size_smaller_first(void *priv, struct list_head *a,
 				  struct list_head *b)
 #else
