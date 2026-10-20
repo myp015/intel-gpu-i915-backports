@@ -38,6 +38,8 @@
 #include <linux/dma-buf.h>
 #include <linux/fdtable.h>
 #include <linux/processor.h>
+#include <linux/version.h>
+#include <linux/syscalls.h>
 #include "kfd_priv.h"
 #include "kfd_device_queue_manager.h"
 #include "kfd_svm.h"
@@ -94,7 +96,12 @@ int kfd_chardev_init(void)
 	if (err < 0)
 		goto err_register_chrdev;
 
+	/* Task#202：6.4 起 class_create() 去掉了 module owner 参数 */
+#if LINUX_VERSION_IS_GEQ(6,4,0)
 	kfd_class = class_create(kfd_dev_name);
+#else
+	kfd_class = class_create(THIS_MODULE, kfd_dev_name);
+#endif
 	err = PTR_ERR(kfd_class);
 	if (IS_ERR(kfd_class))
 		goto err_class_create;
@@ -1997,7 +2004,12 @@ exit:
 	while (ret && bo_index--) {
 		if (bo_buckets[bo_index].alloc_flags
 		    & (KFD_IOC_ALLOC_MEM_FLAGS_VRAM | KFD_IOC_ALLOC_MEM_FLAGS_GTT))
+			/* Task#202：close_fd() 是 5.11 引入的，5.10 用 ksys_close() */
+#if LINUX_VERSION_IS_GEQ(5,11,0)
 			close_fd(bo_buckets[bo_index].dmabuf_fd);
+#else
+			ksys_close(bo_buckets[bo_index].dmabuf_fd);
+#endif
 	}
 
 	kvfree(bo_buckets);
