@@ -152,6 +152,13 @@
  */
 
 #define BPM_DRM_DP_128B132B_API_PRESENT
+
+/*
+ * Task#202：本 fork 内置的 drm 核心已同步到 v6.5 的
+ * drm_dp_calc_pbn_mode(clock, bpp, dsc) 三参数接口（DSC 时 bpp 为 1/16
+ * 单位）。i915 侧据此选择新调用形式，amdgpu 6.5 也要求三参数。
+ */
+#define BPM_DRM_DP_CALC_PBN_MODE_DSC_PRESENT
 /*
  * 68189fef88c7 fs: Change try_to_free_buffers() to take a folio
  */
