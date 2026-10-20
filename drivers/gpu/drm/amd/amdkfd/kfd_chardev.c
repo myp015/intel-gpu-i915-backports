@@ -48,6 +48,13 @@
 #include "amdgpu_dma_buf.h"
 #include "kfd_debug.h"
 
+/* Task#202：close_fd() 是 5.11 引入的，5.10 的等价物是 ksys_close() */
+#if LINUX_VERSION_IS_GEQ(5,11,0)
+#define kfd_close_fd(fd)	close_fd(fd)
+#else
+#define kfd_close_fd(fd)	ksys_close(fd)
+#endif
+
 static long kfd_ioctl(struct file *, unsigned int, unsigned long);
 static int kfd_open(struct inode *, struct file *);
 static int kfd_release(struct inode *, struct file *);
@@ -2004,12 +2011,7 @@ exit:
 	while (ret && bo_index--) {
 		if (bo_buckets[bo_index].alloc_flags
 		    & (KFD_IOC_ALLOC_MEM_FLAGS_VRAM | KFD_IOC_ALLOC_MEM_FLAGS_GTT))
-			/* Task#202：close_fd() 是 5.11 引入的，5.10 用 ksys_close() */
-#if LINUX_VERSION_IS_GEQ(5,11,0)
-			close_fd(bo_buckets[bo_index].dmabuf_fd);
-#else
-			ksys_close(bo_buckets[bo_index].dmabuf_fd);
-#endif
+			kfd_close_fd(bo_buckets[bo_index].dmabuf_fd);
 	}
 
 	kvfree(bo_buckets);
@@ -2488,7 +2490,7 @@ exit:
 	while (ret && i--) {
 		if (bo_buckets[i].alloc_flags
 		   & (KFD_IOC_ALLOC_MEM_FLAGS_VRAM | KFD_IOC_ALLOC_MEM_FLAGS_GTT))
-			close_fd(bo_buckets[i].dmabuf_fd);
+			kfd_close_fd(bo_buckets[i].dmabuf_fd);
 	}
 	kvfree(bo_buckets);
 	kvfree(bo_privs);
