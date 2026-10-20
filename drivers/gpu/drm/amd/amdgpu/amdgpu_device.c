@@ -1527,10 +1527,16 @@ bool amdgpu_device_aspm_support_quirk(void)
  * Enable/disable vga decode (all asics).
  * Returns VGA resource flags.
  */
+#ifdef BPM_VGA_SET_DECODE_ARG_PCI_DEV_NOT_PRESENT
+static unsigned int amdgpu_device_vga_set_decode(void *cookie, bool state)
+{
+	struct amdgpu_device *adev = cookie;
+#else
 static unsigned int amdgpu_device_vga_set_decode(struct pci_dev *pdev,
 		bool state)
 {
 	struct amdgpu_device *adev = drm_to_adev(pci_get_drvdata(pdev));
+#endif
 	amdgpu_asic_set_vga_state(adev, state);
 	if (state)
 		return VGA_RSRC_LEGACY_IO | VGA_RSRC_LEGACY_MEM |
@@ -4129,7 +4135,7 @@ fence_driver_init:
 	 * ignore it */
 	if ((adev->pdev->class >> 8) == PCI_CLASS_DISPLAY_VGA)
 #ifdef BPM_VGA_SET_DECODE_ARG_PCI_DEV_NOT_PRESENT
-		vga_client_register(adev->pdev, NULL, NULL,
+		vga_client_register(adev->pdev, adev, NULL,
 				    amdgpu_device_vga_set_decode);
 #else
 		vga_client_register(adev->pdev, amdgpu_device_vga_set_decode);

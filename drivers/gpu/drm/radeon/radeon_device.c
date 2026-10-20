@@ -1075,10 +1075,16 @@ void radeon_combios_fini(struct radeon_device *rdev)
  * Enable/disable vga decode (all asics).
  * Returns VGA resource flags.
  */
+#ifdef BPM_VGA_SET_DECODE_ARG_PCI_DEV_NOT_PRESENT
+static unsigned int radeon_vga_set_decode(void *cookie, bool state)
+{
+	struct radeon_device *rdev = cookie;
+#else
 static unsigned int radeon_vga_set_decode(struct pci_dev *pdev, bool state)
 {
 	struct drm_device *dev = pci_get_drvdata(pdev);
 	struct radeon_device *rdev = dev->dev_private;
+#endif
 	radeon_vga_set_state(rdev, state);
 	if (state)
 		return VGA_RSRC_LEGACY_IO | VGA_RSRC_LEGACY_MEM |
@@ -1426,7 +1432,7 @@ int radeon_device_init(struct radeon_device *rdev,
 	/* this will fail for cards that aren't VGA class devices, just
 	 * ignore it */
 #ifdef BPM_VGA_SET_DECODE_ARG_PCI_DEV_NOT_PRESENT
-	vga_client_register(rdev->pdev, NULL, NULL, radeon_vga_set_decode);
+	vga_client_register(rdev->pdev, rdev, NULL, radeon_vga_set_decode);
 #else
 	vga_client_register(rdev->pdev, radeon_vga_set_decode);
 #endif
