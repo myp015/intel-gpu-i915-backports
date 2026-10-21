@@ -27,6 +27,7 @@
 #include <linux/stringify.h>
 #include <linux/types.h>
 #include <linux/tracepoint.h>
+#include <backport/backport_path.h>
 
 #undef TRACE_SYSTEM
 #define TRACE_SYSTEM amdgpu
@@ -559,5 +560,5 @@ TRACE_EVENT(amdgpu_reset_reg_dumps,
 
 /* This part must be outside protection */
 #undef TRACE_INCLUDE_PATH
-#define TRACE_INCLUDE_PATH ../../drivers/gpu/drm/amd/amdgpu
+#define TRACE_INCLUDE_PATH BACKPORT_PATH/drivers/gpu/drm/amd/amdgpu
 #include <trace/define_trace.h>

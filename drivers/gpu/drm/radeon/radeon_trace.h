@@ -5,6 +5,7 @@
 #include <linux/stringify.h>
 #include <linux/tracepoint.h>
 #include <linux/types.h>
+#include <backport/backport_path.h>
 
 #include <drm/drm_file.h>
 
@@ -205,5 +206,5 @@ DEFINE_EVENT(radeon_semaphore_request, radeon_semaphore_wait,
 
 /* This part must be outside protection */
 #undef TRACE_INCLUDE_PATH
-#define TRACE_INCLUDE_PATH ../../drivers/gpu/drm/radeon
+#define TRACE_INCLUDE_PATH BACKPORT_PATH/drivers/gpu/drm/radeon
 #include <trace/define_trace.h>
