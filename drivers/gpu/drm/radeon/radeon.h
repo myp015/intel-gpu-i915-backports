@@ -988,6 +988,11 @@ int radeon_ring_test(struct radeon_device *rdev, struct radeon_ring *cp);
 void radeon_ring_lockup_update(struct radeon_device *rdev,
 			       struct radeon_ring *ring);
 bool radeon_ring_test_lockup(struct radeon_device *rdev, struct radeon_ring *ring);
+/* Task#209：挂死取证（环内未消费命令 / DMA 包解码） */
+void radeon_ring_forensics(struct radeon_device *rdev, struct radeon_ring *ring);
+void radeon_ring_forensics_saved(struct radeon_device *rdev,
+				 struct radeon_ring *ring,
+				 const u32 *data, unsigned ndw);
 unsigned radeon_ring_backup(struct radeon_device *rdev, struct radeon_ring *ring,
 			    uint32_t **data);
 int radeon_ring_restore(struct radeon_device *rdev, struct radeon_ring *ring,

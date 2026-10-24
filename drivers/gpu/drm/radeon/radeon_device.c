@@ -1808,6 +1808,9 @@ int radeon_gpu_reset(struct radeon_device *rdev)
 			saved = true;
 			dev_info(rdev->dev, "Saved %d dwords of commands "
 				 "on ring %d.\n", ring_sizes[i], i);
+			/* Task#209：复位会冲掉环内容，先把待重放的命令解码出来 */
+			radeon_ring_forensics_saved(rdev, &rdev->ring[i],
+						    ring_data[i], ring_sizes[i]);
 		}
 	}
 

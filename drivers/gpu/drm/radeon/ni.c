@@ -1812,6 +1812,8 @@ static void cayman_gpu_soft_reset(struct radeon_device *rdev, u32 reset_mask)
 {
 	struct evergreen_mc_save save;
 	u32 grbm_soft_reset = 0, srbm_soft_reset = 0;
+	u32 fault_addr, fault_status;
+	u32 rb_rptr, rb_wptr;
 	u32 tmp;
 
 	if (reset_mask == 0)
@@ -1820,14 +1822,45 @@ static void cayman_gpu_soft_reset(struct radeon_device *rdev, u32 reset_mask)
 	dev_info(rdev->dev, "GPU softreset: 0x%08X\n", reset_mask);
 
 	evergreen_print_gpu_status_regs(rdev);
+
+	/*
+	 * Task#209：VM 保护错误只在中断里解码了 context1，而 context0
+	 * （内核 GTT VM）的故障发生在 DMA 引擎上时不会打任何可读信息。
+	 * 复位前把两个 context 都解码出来，并与环取证里的 COPY 地址对照。
+	 */
+	fault_addr = RREG32(0x14F8);
+	fault_status = RREG32(0x14D8);
 	dev_info(rdev->dev, "  VM_CONTEXT0_PROTECTION_FAULT_ADDR   0x%08X\n",
-		 RREG32(0x14F8));
+		 fault_addr);
 	dev_info(rdev->dev, "  VM_CONTEXT0_PROTECTION_FAULT_STATUS 0x%08X\n",
-		 RREG32(0x14D8));
+		 fault_status);
+	if (fault_addr || fault_status)
+		cayman_vm_decode_fault(rdev, fault_status, fault_addr);
+
+	fault_addr = RREG32(0x14FC);
+	fault_status = RREG32(0x14DC);
 	dev_info(rdev->dev, "  VM_CONTEXT1_PROTECTION_FAULT_ADDR   0x%08X\n",
-		 RREG32(0x14FC));
+		 fault_addr);
 	dev_info(rdev->dev, "  VM_CONTEXT1_PROTECTION_FAULT_STATUS 0x%08X\n",
-		 RREG32(0x14DC));
+		 fault_status);
+	if (fault_addr || fault_status)
+		cayman_vm_decode_fault(rdev, fault_status, fault_addr);
+
+	/* DMA 环的硬件指针：WB 回写只在 IB 提交时更新，直接读寄存器可
+	 * 区分“WB 指针没更新”与“引擎真的停在某个位置没动”。 */
+	rb_rptr = RREG32(DMA_RB_RPTR + DMA0_REGISTER_OFFSET);
+	rb_wptr = RREG32(DMA_RB_WPTR + DMA0_REGISTER_OFFSET);
+	dev_info(rdev->dev,
+		 "  DMA0 RB rptr/wptr = 0x%08X/0x%08X (rptr=%u, wptr=%u dw)\n",
+		 rb_rptr, rb_wptr,
+		 (rb_rptr & 0x3fffc) >> 2, (rb_wptr & 0x3fffc) >> 2);
+
+	rb_rptr = RREG32(DMA_RB_RPTR + DMA1_REGISTER_OFFSET);
+	rb_wptr = RREG32(DMA_RB_WPTR + DMA1_REGISTER_OFFSET);
+	dev_info(rdev->dev,
+		 "  DMA1 RB rptr/wptr = 0x%08X/0x%08X (rptr=%u, wptr=%u dw)\n",
+		 rb_rptr, rb_wptr,
+		 (rb_rptr & 0x3fffc) >> 2, (rb_wptr & 0x3fffc) >> 2);
 
 	/* Disable CP parsing/prefetching */
 	WREG32(CP_ME_CNTL, CP_ME_HALT | CP_PFP_HALT);

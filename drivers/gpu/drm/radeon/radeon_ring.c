@@ -29,6 +29,7 @@
 
 #include <drm/drm_device.h>
 #include <drm/drm_file.h>
+#include <linux/kernel.h>
 
 #include "radeon.h"
 
@@ -269,6 +270,221 @@ bool radeon_ring_test_lockup(struct radeon_device *rdev, struct radeon_ring *rin
 	}
 	/* give a chance to the GPU ... */
 	return false;
+}
+
+/*
+ * Task#209：GPU 挂死取证。
+ *
+ * 现场只有 "ring N stalled" 时无法判断引擎停在哪条命令上。这里把环内
+ * 尚未被消费的命令按 dword 转储，并对 DMA 环（TRINITY/SI 的 TTM 搬运
+ * 固定走 ring 3/4）的包做最小解码：卡住的 COPY 包直接给出源/目的 GPU
+ * 地址与长度，可与复位时 VM_CONTEXT*_PROTECTION_FAULT_ADDR 对照。
+ * 只在首次确认挂死、以及 GPU 复位备份环时调用，属一次性现场记录。
+ */
+#define RADEON_FORENSICS_MAX_DW 64
+
+static const char *radeon_forensics_dma_op(u32 op)
+{
+	switch (op) {
+	case 0x2: return "WRITE";
+	case 0x3: return "COPY";
+	case 0x4: return "INDIRECT_BUFFER";
+	case 0x5: return "SEMAPHORE";
+	case 0x6: return "FENCE";
+	case 0x7: return "TRAP";
+	case 0x9: return "SRBM_WRITE";
+	case 0xd: return "CONSTANT_FILL";
+	case 0xe: return "POLL_REG_MEM";
+	case 0xf: return "NOP";
+	default:  return "UNKNOWN";
+	}
+}
+
+/* DMA 包总长（dword）。未知类型只前进 1 dword；长度一律裁剪到剩余量。 */
+static unsigned radeon_forensics_dma_len(u32 hdr, unsigned avail)
+{
+	unsigned len;
+
+	switch (hdr >> 28) {
+	case 0x3: /* COPY：header + dst_lo/src_lo/dst_hi/src_hi */
+		len = 5;
+		break;
+	case 0x4: /* INDIRECT_BUFFER：header + addr+len + addr_hi */
+		len = 3;
+		break;
+	case 0x2: /* WRITE：header + dst 两 dword + count 个数据 dword */
+		len = 3 + (hdr & 0xfffff);
+		break;
+	case 0x9: /* SRBM_WRITE：header + reg + value */
+		len = 3;
+		break;
+	case 0xe: /* POLL_REG_MEM：header + 5 dword */
+		len = 6;
+		break;
+	default:
+		len = 1;
+		break;
+	}
+	return len < avail ? len : avail;
+}
+
+static void radeon_forensics_dump_dma(struct radeon_device *rdev,
+				      const u32 *data, unsigned ndw)
+{
+	unsigned i = 0;
+
+	while (i < ndw) {
+		u32 hdr = data[i];
+		u32 op = hdr >> 28;
+		unsigned len = radeon_forensics_dma_len(hdr, ndw - i);
+
+		if (op == 0x3 && len == 5) {
+			u64 dst = (u64)data[i + 1] |
+				  ((u64)(data[i + 3] & 0xff) << 32);
+			u64 src = (u64)data[i + 2] |
+				  ((u64)(data[i + 4] & 0xff) << 32);
+
+			/* 第 26 位：SI 的 5 参数宏用它表示按字节计数 */
+			dev_info(rdev->dev,
+				 "  [%3u] DMA COPY dst=0x%010llx src=0x%010llx count=%u %s\n",
+				 i, dst, src, hdr & 0xfffff,
+				 (hdr & (1 << 26)) ? "bytes" : "dwords");
+		} else if (op == 0x4 && len == 3) {
+			u64 addr = (u64)(data[i + 1] & 0xffffffe0) |
+				   ((u64)(data[i + 2] & 0xff) << 32);
+
+			dev_info(rdev->dev,
+				 "  [%3u] DMA IB addr=0x%010llx len=%u dw vmid=%u\n",
+				 i, addr, (data[i + 2] >> 12) & 0xfffff,
+				 (hdr >> 20) & 0xf);
+		} else if (op == 0x2 && len >= 3) {
+			u64 dst = (u64)data[i + 1] |
+				  ((u64)(data[i + 2] & 0xff) << 32);
+
+			dev_info(rdev->dev,
+				 "  [%3u] DMA WRITE dst=0x%010llx count=%u dwords\n",
+				 i, dst, hdr & 0xfffff);
+		} else if (op == 0x9 && len == 3) {
+			dev_info(rdev->dev,
+				 "  [%3u] DMA SRBM_WRITE reg=0x%05x value=0x%08x\n",
+				 i, (data[i + 1] >> 2) & 0xffff, data[i + 2]);
+		} else {
+			dev_info(rdev->dev, "  [%3u] DMA %s header=0x%08x\n",
+				 i, radeon_forensics_dma_op(op), hdr);
+		}
+		i += len;
+	}
+}
+
+static void radeon_forensics_dump_window(struct radeon_device *rdev,
+					 const char *tag,
+					 struct radeon_ring *ring,
+					 const u32 *data, unsigned ndw,
+					 u32 start)
+{
+	unsigned i;
+
+	for (i = 0; i < ndw; i += 8) {
+		char line[8 * 9 + 1];
+		unsigned j, n = ndw - i < 8 ? ndw - i : 8;
+		int off = 0;
+
+		for (j = 0; j < n; j++)
+			off += scnprintf(line + off, sizeof(line) - off,
+					 " %08x", data[i + j]);
+		dev_info(rdev->dev, "  %s[%04x]:%s\n", tag,
+			 (start + i) & ring->ptr_mask, line);
+	}
+}
+
+static bool radeon_ring_is_dma_ring(struct radeon_ring *ring)
+{
+	return ring->idx == R600_RING_TYPE_DMA_INDEX ||
+	       ring->idx == CAYMAN_RING_TYPE_DMA1_INDEX;
+}
+
+/**
+ * radeon_ring_forensics - dump a ring's unprocessed commands (lockup)
+ *
+ * @rdev: radeon_device pointer
+ * @ring: radeon_ring structure holding ring information
+ *
+ * Dump the commands between the hardware read pointer and the write
+ * pointer (maximum RADEON_FORENSICS_MAX_DW dwords) and decode DMA
+ * packets when the ring is one of the async DMA rings.
+ */
+void radeon_ring_forensics(struct radeon_device *rdev, struct radeon_ring *ring)
+{
+	const struct radeon_asic_ring *ar = rdev->asic->ring[ring->idx];
+	struct radeon_fence_driver *drv = &rdev->fence_drv[ring->idx];
+	u32 buf[RADEON_FORENSICS_MAX_DW];
+	u32 wptr = ring->wptr, rptr = ring->wptr;
+	uint64_t last;
+	unsigned ndw, dump_dw, i;
+
+	if (!ring->ready || !ring->ring || !ring->ring_obj)
+		return;
+
+	if (ar && ar->get_rptr)
+		rptr = ar->get_rptr(rdev, ring);
+
+	ndw = (wptr - rptr) & ring->ptr_mask;
+	last = atomic64_read(&ring->last_activity);
+
+	dev_info(rdev->dev,
+		 "ring %u forensics: wptr=%u hw_rptr=%u pending=%u dw fence=0x%016llx completed=0x%016llx fence_addr=0x%016llx (%s)\n",
+		 ring->idx, wptr, rptr, ndw, drv->sync_seq[ring->idx],
+		 (u64)atomic64_read(&drv->last_seq), drv->gpu_addr,
+		 drv->cpu_addr ? "wb" : "scratch");
+	if (last)
+		dev_info(rdev->dev, "  last ring progress %llums ago\n",
+			 (unsigned long long)jiffies_to_msecs(jiffies_64 - last));
+
+	if (!ndw) {
+		dev_info(rdev->dev, "  ring is empty (wptr == hw_rptr)\n");
+		return;
+	}
+
+	dump_dw = ndw < RADEON_FORENSICS_MAX_DW ? ndw : RADEON_FORENSICS_MAX_DW;
+	if (dump_dw != ndw)
+		dev_info(rdev->dev,
+			 "  showing first %u of %u pending dwords\n",
+			 dump_dw, ndw);
+
+	for (i = 0; i < dump_dw; i++)
+		buf[i] = ring->ring[(rptr + i) & ring->ptr_mask];
+
+	radeon_forensics_dump_window(rdev, "ring", ring, buf, dump_dw, rptr);
+	if (radeon_ring_is_dma_ring(ring))
+		radeon_forensics_dump_dma(rdev, buf, dump_dw);
+}
+
+/**
+ * radeon_ring_forensics_saved - dump commands saved by radeon_ring_backup
+ *
+ * @rdev: radeon_device pointer
+ * @ring: radeon_ring structure holding ring information
+ * @data: saved dwords
+ * @ndw: number of saved dwords
+ *
+ * GPU 复位会重新初始化引擎，备份下来的命令就是挂死时尚未被消费的那批，
+ * 直接按备份内容解码，避免复位后再读环造成的误导。
+ */
+void radeon_ring_forensics_saved(struct radeon_device *rdev,
+				 struct radeon_ring *ring,
+				 const u32 *data, unsigned ndw)
+{
+	unsigned dump_dw = ndw < RADEON_FORENSICS_MAX_DW ?
+			   ndw : RADEON_FORENSICS_MAX_DW;
+
+	if (!data || !ndw)
+		return;
+
+	dev_info(rdev->dev, "ring %u: %u dwords pending at reset\n",
+		 ring->idx, ndw);
+	radeon_forensics_dump_window(rdev, "saved", ring, data, dump_dw, 0);
+	if (radeon_ring_is_dma_ring(ring))
+		radeon_forensics_dump_dma(rdev, data, dump_dw);
 }
 
 /**

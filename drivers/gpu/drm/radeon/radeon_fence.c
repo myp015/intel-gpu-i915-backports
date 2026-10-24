@@ -301,6 +301,10 @@ static void radeon_fence_check_lockup(struct work_struct *work)
 			 (uint64_t)atomic64_read(&fence_drv->last_seq),
 			 fence_drv->sync_seq[ring], ring);
 
+		/* Task#209：首次确认挂死时记录现场（每次挂死只做一次） */
+		if (!rdev->needs_reset)
+			radeon_ring_forensics(rdev, &rdev->ring[ring]);
+
 		/* remember that we need an reset */
 		rdev->needs_reset = true;
 		wake_up_all(&rdev->fence_queue);
