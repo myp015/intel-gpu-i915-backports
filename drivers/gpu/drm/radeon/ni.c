@@ -1823,17 +1823,14 @@ static void cayman_gpu_soft_reset(struct radeon_device *rdev, u32 reset_mask)
 
 	evergreen_print_gpu_status_regs(rdev);
 
-	/*
-	 * Task#209：VM 保护错误只在中断里解码了 context1，而 context0
-	 * （内核 GTT VM）的故障发生在 DMA 引擎上时不会打任何可读信息。
-	 * 复位前把两个 context 都解码出来，并与环取证里的 COPY 地址对照。
-	 */
+	/* 保留上游的四行原始打印，另把故障解码出来（中断里只解码 context1） */
 	fault_addr = RREG32(0x14F8);
 	fault_status = RREG32(0x14D8);
 	dev_info(rdev->dev, "  VM_CONTEXT0_PROTECTION_FAULT_ADDR   0x%08X\n",
 		 fault_addr);
 	dev_info(rdev->dev, "  VM_CONTEXT0_PROTECTION_FAULT_STATUS 0x%08X\n",
 		 fault_status);
+	/* Task#209：context0 是内核 GTT VM，DMA 环的搬移都走这里，必须解码 */
 	if (fault_addr || fault_status)
 		cayman_vm_decode_fault(rdev, fault_status, fault_addr);
 
