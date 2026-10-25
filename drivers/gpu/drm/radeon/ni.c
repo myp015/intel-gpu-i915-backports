@@ -1398,7 +1398,7 @@ void cayman_gart_forensics(struct radeon_device *rdev)
 	void __iomem *tbl = (void __iomem *)rdev->gart.ptr;
 	struct radeon_ring *ring;
 	u32 fault_addr, fault_status, base, start, end, cntl;
-	unsigned i, idx = ~0U, bad = 0, first_bad = ~0U;
+	unsigned i, idx = ~0U, bad = 0, checked = 0, first_bad = ~0U;
 	u64 page;
 
 	if (!rdev->gart.ready || !rdev->gart.pages_entry)
@@ -1415,9 +1415,11 @@ void cayman_gart_forensics(struct radeon_device *rdev)
 	cntl = RREG32(VM_CONTEXT0_CNTL);
 
 	dev_info(rdev->dev,
-		 "GART forensics: ctx0 cntl=0x%08X table_reg=0x%08X (0x%llX) table_addr=0x%llX range=[0x%X,0x%X) gtt=[0x%llX,0x%llX)\n",
+		 "GART forensics: ctx0 cntl=0x%08X table_reg=0x%08X (0x%llX) table_addr=0x%llX range=[0x%llX,0x%llX) gtt=[0x%llX,0x%llX)\n",
 		 cntl, base, (unsigned long long)((u64)base << 12),
-		 (unsigned long long)rdev->gart.table_addr, start, end,
+		 (unsigned long long)rdev->gart.table_addr,
+		 (unsigned long long)((u64)start << 12),
+		 (unsigned long long)((u64)end << 12),
 		 (unsigned long long)rdev->mc.gtt_start,
 		 (unsigned long long)rdev->mc.gtt_end);
 
@@ -1483,8 +1485,16 @@ void cayman_gart_forensics(struct radeon_device *rdev)
 
 	if (tbl) {
 		for (i = 0; i < rdev->gart.num_gpu_pages; i++) {
-			uint64_t hw = readq(tbl + (i * 8));
+			uint64_t hw;
 
+			/* 只核对真正在用的表项：未绑定的页都指向 dummy 页，
+			 * 与挂死无关，把 VRAM(BAR) 读次数压到实际用页数量级，
+			 * 避免在 GPU 已卡死时长时间读 BAR。
+			 */
+			if (rdev->gart.pages_entry[i] == rdev->dummy_page.entry)
+				continue;
+			checked++;
+			hw = readq(tbl + (i * 8));
 			if (hw == rdev->gart.pages_entry[i])
 				continue;
 			if (bad < 8)
@@ -1498,12 +1508,12 @@ void cayman_gart_forensics(struct radeon_device *rdev)
 		}
 		if (bad)
 			dev_info(rdev->dev,
-				 "GART forensics: %u/%u table entries differ from mirror (first=%u)\n",
-				 bad, rdev->gart.num_gpu_pages, first_bad);
+				 "GART forensics: %u/%u in-use entries differ from mirror (first=%u)\n",
+				 bad, checked, first_bad);
 		else
 			dev_info(rdev->dev,
-				 "GART forensics: all %u table entries match the driver mirror\n",
-				 rdev->gart.num_gpu_pages);
+				 "GART forensics: all %u in-use entries match the driver mirror\n",
+				 checked);
 	} else {
 		dev_info(rdev->dev,
 			 "GART forensics: table memory not mapped, cannot compare\n");
