@@ -23,6 +23,7 @@
  */
 
 #include <linux/firmware.h>
+#include <linux/io.h>
 #include <linux/module.h>
 #include <linux/pci.h>
 #include <linux/slab.h>
@@ -1342,6 +1343,184 @@ static int cayman_pcie_gart_enable(struct radeon_device *rdev)
 	return 0;
 }
 
+/*
+ * Task#209：挂死现场的 GART/CP 取证
+ *
+ * 现象：ring 0（GFX）与 ring 3（DMA0）在 VAAPI 负载下挂死，复位时
+ * VM_CONTEXT0 记录到 CP/DMA 以 vmid 0 读取一个 pinned GTT 页时发生
+ * VALID 保护错误。要区分三种可能：
+ *   1) 硬件页表内存被破坏（表项与驱动 pages_entry[] 镜像不一致）；
+ *   2) VM_CONTEXT0 的基址/范围与驱动记录不一致（GPU 读的是另一张表）；
+ *   3) 故障寄存器是挂死之后（复位过程中）才置位的，与挂死无关。
+ * 只在首次判定挂死时调用一次，全部是只读访问，不持任何锁。
+ */
+static void cayman_gart_dump_entry(struct radeon_device *rdev, unsigned idx,
+				   const char *tag)
+{
+	void __iomem *tbl = (void __iomem *)rdev->gart.ptr;
+	uint64_t hw = 0;
+
+	if (idx >= rdev->gart.num_gpu_pages)
+		return;
+	if (tbl)
+		hw = readq(tbl + (idx * 8));
+
+	dev_info(rdev->dev,
+		 "  gart[%u]%s hw=0x%016llX mirror=0x%016llX page=%s\n",
+		 idx, tag, (unsigned long long)hw,
+		 (unsigned long long)rdev->gart.pages_entry[idx],
+		 idx < rdev->gart.num_cpu_pages && rdev->gart.pages[idx] ?
+		 "bound" : "NULL");
+}
+
+static void cayman_gart_dump_bo(struct radeon_device *rdev, const char *tag,
+				struct radeon_bo *bo, u64 cached)
+{
+	if (!bo) {
+		dev_info(rdev->dev, "  %s: no bo\n", tag);
+		return;
+	}
+	if (!bo->tbo.resource) {
+		dev_info(rdev->dev, "  %s: no resource (cached=0x%llX)\n",
+			 tag, (unsigned long long)cached);
+		return;
+	}
+	dev_info(rdev->dev,
+		 "  %s: cached=0x%llX live=0x%llX pin=%u mem_type=%u start=0x%lX\n",
+		 tag, (unsigned long long)cached,
+		 (unsigned long long)radeon_bo_gpu_offset(bo),
+		 bo->tbo.pin_count, bo->tbo.resource->mem_type,
+		 bo->tbo.resource->start);
+}
+
+void cayman_gart_forensics(struct radeon_device *rdev)
+{
+	void __iomem *tbl = (void __iomem *)rdev->gart.ptr;
+	struct radeon_ring *ring;
+	u32 fault_addr, fault_status, base, start, end, cntl;
+	unsigned i, idx = ~0U, bad = 0, first_bad = ~0U;
+	u64 page;
+
+	if (!rdev->gart.ready || !rdev->gart.pages_entry)
+		return;
+
+	/* 这两个故障寄存器在各代寄存器头文件里都没有命名，沿用
+	 * cayman_gpu_soft_reset() 里的裸偏移。
+	 */
+	fault_addr = RREG32(0x14F8);
+	fault_status = RREG32(0x14D8);
+	base = RREG32(VM_CONTEXT0_PAGE_TABLE_BASE_ADDR);
+	start = RREG32(VM_CONTEXT0_PAGE_TABLE_START_ADDR);
+	end = RREG32(VM_CONTEXT0_PAGE_TABLE_END_ADDR);
+	cntl = RREG32(VM_CONTEXT0_CNTL);
+
+	dev_info(rdev->dev,
+		 "GART forensics: ctx0 cntl=0x%08X table_reg=0x%08X (0x%llX) table_addr=0x%llX range=[0x%X,0x%X) gtt=[0x%llX,0x%llX)\n",
+		 cntl, base, (unsigned long long)((u64)base << 12),
+		 (unsigned long long)rdev->gart.table_addr, start, end,
+		 (unsigned long long)rdev->mc.gtt_start,
+		 (unsigned long long)rdev->mc.gtt_end);
+
+	if (fault_addr || fault_status) {
+		dev_info(rdev->dev,
+			 "GART forensics: ctx0 fault addr=0x%08X status=0x%08X (page 0x%X)\n",
+			 fault_addr, fault_status, fault_addr);
+		cayman_vm_decode_fault(rdev, fault_status, fault_addr);
+		page = (u64)fault_addr << 12;
+		if (page >= rdev->mc.gtt_start && page < rdev->mc.gtt_end)
+			idx = (unsigned)((page - rdev->mc.gtt_start) >> PAGE_SHIFT);
+	} else {
+		dev_info(rdev->dev,
+			 "GART forensics: ctx0 fault registers are clear at lockup\n");
+	}
+
+	if (idx != ~0U) {
+		unsigned from = idx > 2 ? idx - 2 : 0;
+		unsigned to = min(idx + 3, rdev->gart.num_gpu_pages);
+
+		for (i = from; i < to; i++)
+			cayman_gart_dump_entry(rdev, i, " (fault page)");
+	}
+
+	for (i = 0; i < RADEON_NUM_RINGS; i++) {
+		ring = &rdev->ring[i];
+		if (!ring->ring_obj)
+			continue;
+		dev_info(rdev->dev,
+			 "  ring %u: gpu_addr=0x%llX wptr=%u size=%uK\n",
+			 i, (unsigned long long)ring->gpu_addr, ring->wptr,
+			 ring->ring_size >> 10);
+		cayman_gart_dump_bo(rdev, "ring bo", ring->ring_obj,
+				    ring->gpu_addr);
+		if (ring->gpu_addr >= rdev->mc.gtt_start &&
+		    ring->gpu_addr < rdev->mc.gtt_end)
+			cayman_gart_dump_entry(rdev,
+				(unsigned)((ring->gpu_addr - rdev->mc.gtt_start) >>
+					   PAGE_SHIFT),
+				" (ring base)");
+	}
+
+	if (rdev->ring_tmp_bo.bo) {
+		dev_info(rdev->dev, "  sa pool: gpu_addr=0x%llX\n",
+			 (unsigned long long)rdev->ring_tmp_bo.gpu_addr);
+		cayman_gart_dump_bo(rdev, "sa pool bo", rdev->ring_tmp_bo.bo,
+				    rdev->ring_tmp_bo.gpu_addr);
+		if (rdev->ring_tmp_bo.gpu_addr >= rdev->mc.gtt_start &&
+		    rdev->ring_tmp_bo.gpu_addr < rdev->mc.gtt_end)
+			cayman_gart_dump_entry(rdev,
+				(unsigned)((rdev->ring_tmp_bo.gpu_addr -
+					    rdev->mc.gtt_start) >> PAGE_SHIFT),
+				" (sa pool base)");
+	}
+
+	if (rdev->wb.wb_obj) {
+		dev_info(rdev->dev, "  wb: gpu_addr=0x%llX enabled=%d\n",
+			 (unsigned long long)rdev->wb.gpu_addr,
+			 rdev->wb.enabled);
+		cayman_gart_dump_bo(rdev, "wb bo", rdev->wb.wb_obj,
+				    rdev->wb.gpu_addr);
+	}
+
+	if (tbl) {
+		for (i = 0; i < rdev->gart.num_gpu_pages; i++) {
+			uint64_t hw = readq(tbl + (i * 8));
+
+			if (hw == rdev->gart.pages_entry[i])
+				continue;
+			if (bad < 8)
+				dev_info(rdev->dev,
+					 "  gart[%u] mismatch hw=0x%016llX mirror=0x%016llX\n",
+					 i, (unsigned long long)hw,
+					 (unsigned long long)rdev->gart.pages_entry[i]);
+			if (bad == 0)
+				first_bad = i;
+			bad++;
+		}
+		if (bad)
+			dev_info(rdev->dev,
+				 "GART forensics: %u/%u table entries differ from mirror (first=%u)\n",
+				 bad, rdev->gart.num_gpu_pages, first_bad);
+		else
+			dev_info(rdev->dev,
+				 "GART forensics: all %u table entries match the driver mirror\n",
+				 rdev->gart.num_gpu_pages);
+	} else {
+		dev_info(rdev->dev,
+			 "GART forensics: table memory not mapped, cannot compare\n");
+	}
+
+	ring = &rdev->ring[RADEON_RING_TYPE_GFX_INDEX];
+	dev_info(rdev->dev,
+		 "GART forensics: CP_RB0_BASE=0x%08X (ring>>8=0x%llX) CNTL=0x%08X RPTR_ADDR=0x%08X/%02X (expect 0x%llX) RPTR=0x%08X WPTR=0x%08X\n",
+		 RREG32(CP_RB0_BASE),
+		 (unsigned long long)(ring->gpu_addr >> 8),
+		 RREG32(CP_RB0_CNTL),
+		 RREG32(CP_RB0_RPTR_ADDR), RREG32(CP_RB0_RPTR_ADDR_HI),
+		 (unsigned long long)((rdev->wb.gpu_addr +
+				       RADEON_WB_CP_RPTR_OFFSET) & 0xFFFFFFFC),
+		 RREG32(CP_RB0_RPTR), RREG32(CP_RB0_WPTR));
+}
+
 static void cayman_pcie_gart_disable(struct radeon_device *rdev)
 {
 	unsigned i;
@@ -1717,6 +1896,13 @@ static int cayman_cp_resume(struct radeon_device *rdev)
 	rdev->ring[CAYMAN_RING_TYPE_CP2_INDEX].ready = false;
 	/* this only test cp0 */
 	r = radeon_ring_test(rdev, RADEON_RING_TYPE_GFX_INDEX, &rdev->ring[RADEON_RING_TYPE_GFX_INDEX]);
+	/* Task#209：记录本轮 resume 后的 ctx0 故障寄存器基线。挂死取证里的
+	 * 当前值与这里相同 => 故障是本次启动/复位之前就有的；不同 => 是运行
+	 * 期新发生的。寄存器在各代头文件里没有命名，沿用 soft reset 的裸偏移。
+	 */
+	dev_info(rdev->dev,
+		 "VM_CONTEXT0 fault baseline after CP resume: addr=0x%08X status=0x%08X\n",
+		 RREG32(0x14F8), RREG32(0x14D8));
 	if (r) {
 		rdev->ring[RADEON_RING_TYPE_GFX_INDEX].ready = false;
 		rdev->ring[CAYMAN_RING_TYPE_CP1_INDEX].ready = false;

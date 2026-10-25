@@ -990,6 +990,8 @@ void radeon_ring_lockup_update(struct radeon_device *rdev,
 bool radeon_ring_test_lockup(struct radeon_device *rdev, struct radeon_ring *ring);
 /* Task#209：挂死取证（环内未消费命令 / DMA 包解码） */
 void radeon_ring_forensics(struct radeon_device *rdev, struct radeon_ring *ring);
+/* Task#209：挂死时核对硬件 GART 表、VM_CONTEXT0 基址与 pinned BO 地址 */
+void cayman_gart_forensics(struct radeon_device *rdev);
 void radeon_ring_forensics_saved(struct radeon_device *rdev,
 				 struct radeon_ring *ring,
 				 const u32 *data, unsigned ndw);
