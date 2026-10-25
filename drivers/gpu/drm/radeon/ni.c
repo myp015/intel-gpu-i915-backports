@@ -1397,15 +1397,26 @@ void cayman_gart_forensics(struct radeon_device *rdev)
 {
 	void __iomem *tbl = (void __iomem *)rdev->gart.ptr;
 	struct radeon_ring *ring;
+	const struct radeon_asic_ring *ar;
 	u32 fault_addr, fault_status, base, start, end, cntl;
+	u32 cp_base, cp_cntl, cp_rptr, cp_wptr, cp_rptr_addr, cp_rptr_addr_hi;
+	u32 drv_rptr, scratch = 0;
 	unsigned i, idx = ~0U, bad = 0, checked = 0, first_bad = ~0U;
 	u64 page;
 
 	if (!rdev->gart.ready || !rdev->gart.pages_entry)
 		return;
 
-	/* 这两个故障寄存器在各代寄存器头文件里都没有命名，沿用
+	ring = &rdev->ring[RADEON_RING_TYPE_GFX_INDEX];
+	ar = rdev->asic->ring[RADEON_RING_TYPE_GFX_INDEX];
+	drv_rptr = (ar && ar->get_rptr) ? ar->get_rptr(rdev, ring) : ring->wptr;
+
+	/* 两个故障寄存器在各代寄存器头文件里都没有命名，沿用
 	 * cayman_gpu_soft_reset() 里的裸偏移。
+	 *
+	 * 判定根因需要的寄存器一次全部取回，先打成一行 VERDICT：
+	 * 上一轮的现场是在打印过程中整机冻死的（日志只留下半行），
+	 * 这一行必须最先落盘，后面的详细取证全部是补充。
 	 */
 	fault_addr = RREG32(0x14F8);
 	fault_status = RREG32(0x14D8);
@@ -1413,15 +1424,27 @@ void cayman_gart_forensics(struct radeon_device *rdev)
 	start = RREG32(VM_CONTEXT0_PAGE_TABLE_START_ADDR);
 	end = RREG32(VM_CONTEXT0_PAGE_TABLE_END_ADDR);
 	cntl = RREG32(VM_CONTEXT0_CNTL);
+	cp_base = RREG32(CP_RB0_BASE);
+	cp_cntl = RREG32(CP_RB0_CNTL);
+	cp_rptr_addr = RREG32(CP_RB0_RPTR_ADDR);
+	cp_rptr_addr_hi = RREG32(CP_RB0_RPTR_ADDR_HI);
+	cp_rptr = RREG32(CP_RB0_RPTR);
+	cp_wptr = RREG32(CP_RB0_WPTR);
+	if (ring->rptr_save_reg)
+		scratch = RREG32(ring->rptr_save_reg);
 
 	dev_info(rdev->dev,
-		 "GART forensics: ctx0 cntl=0x%08X table_reg=0x%08X (0x%llX) table_addr=0x%llX range=[0x%llX,0x%llX) gtt=[0x%llX,0x%llX)\n",
-		 cntl, base, (unsigned long long)((u64)base << 12),
-		 (unsigned long long)rdev->gart.table_addr,
+		 "GART forensics: VERDICT ctx0 base=0x%X exp=0x%llX cntl=0x%X range=[0x%llX,0x%llX) gtt=[0x%llX,0x%llX) fault=0x%X/0x%X dummy=0x%llX | cp base=0x%X exp=0x%llX cntl=0x%X rptr_addr=0x%X/%02X wptr=0x%X rptr=0x%X drv_wptr=%u drv_rptr=%u scratch=0x%X\n",
+		 base, (unsigned long long)(rdev->gart.table_addr >> 12), cntl,
 		 (unsigned long long)((u64)start << 12),
 		 (unsigned long long)((u64)end << 12),
 		 (unsigned long long)rdev->mc.gtt_start,
-		 (unsigned long long)rdev->mc.gtt_end);
+		 (unsigned long long)rdev->mc.gtt_end,
+		 fault_addr, fault_status,
+		 (unsigned long long)rdev->dummy_page.entry,
+		 cp_base, (unsigned long long)(ring->gpu_addr >> 8), cp_cntl,
+		 cp_rptr_addr, cp_rptr_addr_hi, cp_wptr, cp_rptr,
+		 ring->wptr, drv_rptr, scratch);
 
 	if (fault_addr || fault_status) {
 		dev_info(rdev->dev,
@@ -1518,17 +1541,6 @@ void cayman_gart_forensics(struct radeon_device *rdev)
 		dev_info(rdev->dev,
 			 "GART forensics: table memory not mapped, cannot compare\n");
 	}
-
-	ring = &rdev->ring[RADEON_RING_TYPE_GFX_INDEX];
-	dev_info(rdev->dev,
-		 "GART forensics: CP_RB0_BASE=0x%08X (ring>>8=0x%llX) CNTL=0x%08X RPTR_ADDR=0x%08X/%02X (expect 0x%llX) RPTR=0x%08X WPTR=0x%08X\n",
-		 RREG32(CP_RB0_BASE),
-		 (unsigned long long)(ring->gpu_addr >> 8),
-		 RREG32(CP_RB0_CNTL),
-		 RREG32(CP_RB0_RPTR_ADDR), RREG32(CP_RB0_RPTR_ADDR_HI),
-		 (unsigned long long)((rdev->wb.gpu_addr +
-				       RADEON_WB_CP_RPTR_OFFSET) & 0xFFFFFFFC),
-		 RREG32(CP_RB0_RPTR), RREG32(CP_RB0_WPTR));
 }
 
 static void cayman_pcie_gart_disable(struct radeon_device *rdev)
