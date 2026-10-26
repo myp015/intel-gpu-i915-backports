@@ -36,6 +36,8 @@
 #include <linux/vga_switcheroo.h>
 #include <linux/mmu_notifier.h>
 #include <linux/pci.h>
+#include <linux/fb.h>
+#include <linux/version.h>
 
 #include <drm/drm_aperture.h>
 #include <drm/drm_drv.h>
@@ -326,6 +328,25 @@ static int radeon_pci_probe(struct pci_dev *pdev,
 	ret = drm_aperture_remove_conflicting_pci_framebuffers(pdev, &kms_driver);
 	if (ret)
 		return ret;
+#if !defined(CPTCFG_APERTURE_HELPERS) && \
+	(defined(CONFIG_FB) || defined(CONFIG_FB_MODULE)) && \
+	LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0) && \
+	LINUX_VERSION_CODE < KERNEL_VERSION(6, 2, 0)
+	/*
+	 * 5.10 内核没有 drivers/video/aperture.c，drm-include/linux/aperture.h 在
+	 * CPTCFG_APERTURE_HELPERS 未开启时把 drm_aperture_* 降级成空桩，于是上面
+	 * 那次调用什么也没做，vesafb/efifb 这类固件帧缓冲继续占着 VRAM 前 8MB。
+	 * TTM 并不知道这段区间被占，会把内核 BO（含 GART 页表）分配进去；控制台
+	 * 消隐/恢复或 VT 切换会整屏重绘（1920x1080x4 约 8MB）写 0，把页表打掉，
+	 * GPU 之后取不到页表 → CP/ring 保护性故障 → 挂死。
+	 * 这里补上 5.10 自带的旧式接口，在分配 VRAM 之前把固件帧缓冲摘掉。
+	 * 4.4(DSM 7.1/7.2 主流程) 内核本身有 drivers/video/aperture.c，会走真实
+	 * 实现，且 fb.h 里没有这个旧接口，所以用版本下界把本分支排除掉。
+	 */
+	ret = remove_conflicting_pci_framebuffers(pdev, "radeondrmfb");
+	if (ret)
+		return ret;
+#endif
 
 	dev = drm_dev_alloc(&kms_driver, &pdev->dev);
 	if (IS_ERR(dev))
