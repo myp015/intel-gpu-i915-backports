@@ -876,10 +876,56 @@ static void amdgpu_job_fence_release(struct dma_fence *f)
 	call_rcu(&f->rcu, amdgpu_job_fence_free);
 }
 
+/*
+ * Task#209：短分片等待，与 radeon 侧同构。
+ *
+ * 正常情况下每个 IP 的 IH 都会调 amdgpu_fence_process()，fence 完成时等待方
+ * 立即被回调唤醒，本函数行为与 dma_fence_default_wait() 完全一致。只有 fence
+ * 中断丢失/被屏蔽时才有区别：默认实现会一直睡到 ring 的 fallback_timer
+ * （HZ/2）到期，本实现每片到期主动读一次硬件 seq 推进 fence 处理，把延迟
+ * 压到一个分片。只挂到 amdgpu_fence_ops —— job fence 内嵌在 struct amdgpu_job
+ * 里（不是 struct amdgpu_fence），container_of 不成立，保持默认等待。
+ */
+static signed long
+amdgpu_fence_wait_slice(struct dma_fence *f, bool intr, signed long timeout)
+{
+	struct amdgpu_fence *fence;
+	signed long total = timeout, ret;
+
+	if (timeout == 0)
+		return dma_fence_default_wait(f, intr, 0);
+
+	fence = container_of(f, struct amdgpu_fence, base);
+
+	for (;;) {
+		signed long slice = min_t(long, total,
+					  AMDGPU_FENCE_WAIT_SLICE_JIFFIES);
+
+		ret = dma_fence_default_wait(f, intr, slice);
+		if (ret < 0)
+			return ret;		/* 被信号打断 */
+		if (ret > 0)
+			return ret;		/* fence 已 signal */
+
+		/* 本片超时：主动读硬件 seq，推进一次 fence 处理 */
+		amdgpu_fence_process(fence->ring);
+		if (dma_fence_is_signaled(f))
+			return total;
+
+		if (total == MAX_SCHEDULE_TIMEOUT)
+			continue;
+
+		total -= slice;
+		if (total <= 0)
+			return 0;		/* 总超时 */
+	}
+}
+
 static const struct dma_fence_ops amdgpu_fence_ops = {
 	.get_driver_name = amdgpu_fence_get_driver_name,
 	.get_timeline_name = amdgpu_fence_get_timeline_name,
 	.enable_signaling = amdgpu_fence_enable_signaling,
+	.wait = amdgpu_fence_wait_slice,
 	.release = amdgpu_fence_release,
 };
 
