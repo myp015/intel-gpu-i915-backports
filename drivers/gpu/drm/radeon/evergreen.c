@@ -3770,28 +3770,28 @@ int evergreen_mc_init(struct radeon_device *rdev)
 
 void evergreen_print_gpu_status_regs(struct radeon_device *rdev)
 {
-	dev_info(rdev->dev, "  GRBM_STATUS               = 0x%08X\n",
+	dev_warn(rdev->dev, "  GRBM_STATUS               = 0x%08X\n",
 		RREG32(GRBM_STATUS));
-	dev_info(rdev->dev, "  GRBM_STATUS_SE0           = 0x%08X\n",
+	dev_warn(rdev->dev, "  GRBM_STATUS_SE0           = 0x%08X\n",
 		RREG32(GRBM_STATUS_SE0));
-	dev_info(rdev->dev, "  GRBM_STATUS_SE1           = 0x%08X\n",
+	dev_warn(rdev->dev, "  GRBM_STATUS_SE1           = 0x%08X\n",
 		RREG32(GRBM_STATUS_SE1));
-	dev_info(rdev->dev, "  SRBM_STATUS               = 0x%08X\n",
+	dev_warn(rdev->dev, "  SRBM_STATUS               = 0x%08X\n",
 		RREG32(SRBM_STATUS));
-	dev_info(rdev->dev, "  SRBM_STATUS2              = 0x%08X\n",
+	dev_warn(rdev->dev, "  SRBM_STATUS2              = 0x%08X\n",
 		RREG32(SRBM_STATUS2));
-	dev_info(rdev->dev, "  R_008674_CP_STALLED_STAT1 = 0x%08X\n",
+	dev_warn(rdev->dev, "  R_008674_CP_STALLED_STAT1 = 0x%08X\n",
 		RREG32(CP_STALLED_STAT1));
-	dev_info(rdev->dev, "  R_008678_CP_STALLED_STAT2 = 0x%08X\n",
+	dev_warn(rdev->dev, "  R_008678_CP_STALLED_STAT2 = 0x%08X\n",
 		RREG32(CP_STALLED_STAT2));
-	dev_info(rdev->dev, "  R_00867C_CP_BUSY_STAT     = 0x%08X\n",
+	dev_warn(rdev->dev, "  R_00867C_CP_BUSY_STAT     = 0x%08X\n",
 		RREG32(CP_BUSY_STAT));
-	dev_info(rdev->dev, "  R_008680_CP_STAT          = 0x%08X\n",
+	dev_warn(rdev->dev, "  R_008680_CP_STAT          = 0x%08X\n",
 		RREG32(CP_STAT));
-	dev_info(rdev->dev, "  R_00D034_DMA_STATUS_REG   = 0x%08X\n",
+	dev_warn(rdev->dev, "  R_00D034_DMA_STATUS_REG   = 0x%08X\n",
 		RREG32(DMA_STATUS_REG));
 	if (rdev->family >= CHIP_CAYMAN) {
-		dev_info(rdev->dev, "  R_00D834_DMA_STATUS_REG   = 0x%08X\n",
+		dev_warn(rdev->dev, "  R_00D834_DMA_STATUS_REG   = 0x%08X\n",
 			 RREG32(DMA_STATUS_REG + 0x800));
 	}
 }

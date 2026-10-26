@@ -1353,7 +1353,17 @@ static int cayman_pcie_gart_enable(struct radeon_device *rdev)
  *   2) VM_CONTEXT0 的基址/范围与驱动记录不一致（GPU 读的是另一张表）；
  *   3) 故障寄存器是挂死之后（复位过程中）才置位的，与挂死无关。
  * 只在首次判定挂死时调用一次，全部是只读访问，不持任何锁。
+ *
+ * 全表逐项比对本该是区分上述三种可能的直接证据，但它要把整张 GART 表
+ * 从 VRAM(BAR) 读一遍；GPU 已经卡死时长时间的 BAR 访问有把整机拖死的
+ * 风险（上一轮现场就丢在打印途中）。默认关闭，需要时
+ * radeon.gart_scan=1 打开；故障页前后与各环/SA/WB 首页的表项是定长
+ * 少量读，始终打印。
  */
+static bool radeon_gart_scan;
+module_param_named(gart_scan, radeon_gart_scan, bool, 0444);
+MODULE_PARM_DESC(gart_scan, "Compare every in-use GART entry at lockup (default: 0)");
+
 static void cayman_gart_dump_entry(struct radeon_device *rdev, unsigned idx,
 				   const char *tag)
 {
@@ -1365,7 +1375,7 @@ static void cayman_gart_dump_entry(struct radeon_device *rdev, unsigned idx,
 	if (tbl)
 		hw = readq(tbl + (idx * 8));
 
-	dev_info(rdev->dev,
+	dev_err(rdev->dev,
 		 "  gart[%u]%s hw=0x%016llX mirror=0x%016llX page=%s\n",
 		 idx, tag, (unsigned long long)hw,
 		 (unsigned long long)rdev->gart.pages_entry[idx],
@@ -1377,15 +1387,15 @@ static void cayman_gart_dump_bo(struct radeon_device *rdev, const char *tag,
 				struct radeon_bo *bo, u64 cached)
 {
 	if (!bo) {
-		dev_info(rdev->dev, "  %s: no bo\n", tag);
+		dev_err(rdev->dev, "  %s: no bo\n", tag);
 		return;
 	}
 	if (!bo->tbo.resource) {
-		dev_info(rdev->dev, "  %s: no resource (cached=0x%llX)\n",
+		dev_err(rdev->dev, "  %s: no resource (cached=0x%llX)\n",
 			 tag, (unsigned long long)cached);
 		return;
 	}
-	dev_info(rdev->dev,
+	dev_err(rdev->dev,
 		 "  %s: cached=0x%llX live=0x%llX pin=%u mem_type=%u start=0x%lX\n",
 		 tag, (unsigned long long)cached,
 		 (unsigned long long)radeon_bo_gpu_offset(bo),
@@ -1433,7 +1443,7 @@ void cayman_gart_forensics(struct radeon_device *rdev)
 	if (ring->rptr_save_reg)
 		scratch = RREG32(ring->rptr_save_reg);
 
-	dev_info(rdev->dev,
+	dev_err(rdev->dev,
 		 "GART forensics: VERDICT ctx0 base=0x%X exp=0x%llX cntl=0x%X range=[0x%llX,0x%llX) gtt=[0x%llX,0x%llX) fault=0x%X/0x%X dummy=0x%llX | cp base=0x%X exp=0x%llX cntl=0x%X rptr_addr=0x%X/%02X wptr=0x%X rptr=0x%X drv_wptr=%u drv_rptr=%u scratch=0x%X\n",
 		 base, (unsigned long long)(rdev->gart.table_addr >> 12), cntl,
 		 (unsigned long long)((u64)start << 12),
@@ -1447,7 +1457,7 @@ void cayman_gart_forensics(struct radeon_device *rdev)
 		 ring->wptr, drv_rptr, scratch);
 
 	if (fault_addr || fault_status) {
-		dev_info(rdev->dev,
+		dev_err(rdev->dev,
 			 "GART forensics: ctx0 fault addr=0x%08X status=0x%08X (page 0x%X)\n",
 			 fault_addr, fault_status, fault_addr);
 		cayman_vm_decode_fault(rdev, fault_status, fault_addr);
@@ -1455,7 +1465,7 @@ void cayman_gart_forensics(struct radeon_device *rdev)
 		if (page >= rdev->mc.gtt_start && page < rdev->mc.gtt_end)
 			idx = (unsigned)((page - rdev->mc.gtt_start) >> PAGE_SHIFT);
 	} else {
-		dev_info(rdev->dev,
+		dev_err(rdev->dev,
 			 "GART forensics: ctx0 fault registers are clear at lockup\n");
 	}
 
@@ -1471,7 +1481,7 @@ void cayman_gart_forensics(struct radeon_device *rdev)
 		ring = &rdev->ring[i];
 		if (!ring->ring_obj)
 			continue;
-		dev_info(rdev->dev,
+		dev_err(rdev->dev,
 			 "  ring %u: gpu_addr=0x%llX wptr=%u size=%uK\n",
 			 i, (unsigned long long)ring->gpu_addr, ring->wptr,
 			 ring->ring_size >> 10);
@@ -1486,7 +1496,7 @@ void cayman_gart_forensics(struct radeon_device *rdev)
 	}
 
 	if (rdev->ring_tmp_bo.bo) {
-		dev_info(rdev->dev, "  sa pool: gpu_addr=0x%llX\n",
+		dev_err(rdev->dev, "  sa pool: gpu_addr=0x%llX\n",
 			 (unsigned long long)rdev->ring_tmp_bo.gpu_addr);
 		cayman_gart_dump_bo(rdev, "sa pool bo", rdev->ring_tmp_bo.bo,
 				    rdev->ring_tmp_bo.gpu_addr);
@@ -1499,14 +1509,14 @@ void cayman_gart_forensics(struct radeon_device *rdev)
 	}
 
 	if (rdev->wb.wb_obj) {
-		dev_info(rdev->dev, "  wb: gpu_addr=0x%llX enabled=%d\n",
+		dev_err(rdev->dev, "  wb: gpu_addr=0x%llX enabled=%d\n",
 			 (unsigned long long)rdev->wb.gpu_addr,
 			 rdev->wb.enabled);
 		cayman_gart_dump_bo(rdev, "wb bo", rdev->wb.wb_obj,
 				    rdev->wb.gpu_addr);
 	}
 
-	if (tbl) {
+	if (tbl && radeon_gart_scan) {
 		for (i = 0; i < rdev->gart.num_gpu_pages; i++) {
 			uint64_t hw;
 
@@ -1521,7 +1531,7 @@ void cayman_gart_forensics(struct radeon_device *rdev)
 			if (hw == rdev->gart.pages_entry[i])
 				continue;
 			if (bad < 8)
-				dev_info(rdev->dev,
+				dev_err(rdev->dev,
 					 "  gart[%u] mismatch hw=0x%016llX mirror=0x%016llX\n",
 					 i, (unsigned long long)hw,
 					 (unsigned long long)rdev->gart.pages_entry[i]);
@@ -1530,15 +1540,18 @@ void cayman_gart_forensics(struct radeon_device *rdev)
 			bad++;
 		}
 		if (bad)
-			dev_info(rdev->dev,
+			dev_err(rdev->dev,
 				 "GART forensics: %u/%u in-use entries differ from mirror (first=%u)\n",
 				 bad, checked, first_bad);
 		else
-			dev_info(rdev->dev,
+			dev_err(rdev->dev,
 				 "GART forensics: all %u in-use entries match the driver mirror\n",
 				 checked);
+	} else if (tbl) {
+		dev_err(rdev->dev,
+			 "GART forensics: full table scan disabled (radeon.gart_scan=0)\n");
 	} else {
-		dev_info(rdev->dev,
+		dev_err(rdev->dev,
 			 "GART forensics: table memory not mapped, cannot compare\n");
 	}
 }
@@ -1922,7 +1935,7 @@ static int cayman_cp_resume(struct radeon_device *rdev)
 	 * 当前值与这里相同 => 故障是本次启动/复位之前就有的；不同 => 是运行
 	 * 期新发生的。寄存器在各代头文件里没有命名，沿用 soft reset 的裸偏移。
 	 */
-	dev_info(rdev->dev,
+	dev_warn(rdev->dev,
 		 "VM_CONTEXT0 fault baseline after CP resume: addr=0x%08X status=0x%08X\n",
 		 RREG32(0x14F8), RREG32(0x14D8));
 	if (r) {
@@ -2027,16 +2040,16 @@ static void cayman_gpu_soft_reset(struct radeon_device *rdev, u32 reset_mask)
 	if (reset_mask == 0)
 		return;
 
-	dev_info(rdev->dev, "GPU softreset: 0x%08X\n", reset_mask);
+	dev_err(rdev->dev, "GPU softreset: 0x%08X\n", reset_mask);
 
 	evergreen_print_gpu_status_regs(rdev);
 
 	/* 保留上游的四行原始打印，另把故障解码出来（中断里只解码 context1） */
 	fault_addr = RREG32(0x14F8);
 	fault_status = RREG32(0x14D8);
-	dev_info(rdev->dev, "  VM_CONTEXT0_PROTECTION_FAULT_ADDR   0x%08X\n",
+	dev_err(rdev->dev, "  VM_CONTEXT0_PROTECTION_FAULT_ADDR   0x%08X\n",
 		 fault_addr);
-	dev_info(rdev->dev, "  VM_CONTEXT0_PROTECTION_FAULT_STATUS 0x%08X\n",
+	dev_err(rdev->dev, "  VM_CONTEXT0_PROTECTION_FAULT_STATUS 0x%08X\n",
 		 fault_status);
 	/* Task#209：context0 是内核 GTT VM，DMA 环的搬移都走这里，必须解码 */
 	if (fault_addr || fault_status)
@@ -2044,9 +2057,9 @@ static void cayman_gpu_soft_reset(struct radeon_device *rdev, u32 reset_mask)
 
 	fault_addr = RREG32(0x14FC);
 	fault_status = RREG32(0x14DC);
-	dev_info(rdev->dev, "  VM_CONTEXT1_PROTECTION_FAULT_ADDR   0x%08X\n",
+	dev_err(rdev->dev, "  VM_CONTEXT1_PROTECTION_FAULT_ADDR   0x%08X\n",
 		 fault_addr);
-	dev_info(rdev->dev, "  VM_CONTEXT1_PROTECTION_FAULT_STATUS 0x%08X\n",
+	dev_err(rdev->dev, "  VM_CONTEXT1_PROTECTION_FAULT_STATUS 0x%08X\n",
 		 fault_status);
 	if (fault_addr || fault_status)
 		cayman_vm_decode_fault(rdev, fault_status, fault_addr);
@@ -2055,14 +2068,14 @@ static void cayman_gpu_soft_reset(struct radeon_device *rdev, u32 reset_mask)
 	 * 区分“WB 指针没更新”与“引擎真的停在某个位置没动”。 */
 	rb_rptr = RREG32(DMA_RB_RPTR + DMA0_REGISTER_OFFSET);
 	rb_wptr = RREG32(DMA_RB_WPTR + DMA0_REGISTER_OFFSET);
-	dev_info(rdev->dev,
+	dev_err(rdev->dev,
 		 "  DMA0 RB rptr/wptr = 0x%08X/0x%08X (rptr=%u, wptr=%u dw)\n",
 		 rb_rptr, rb_wptr,
 		 (rb_rptr & 0x3fffc) >> 2, (rb_wptr & 0x3fffc) >> 2);
 
 	rb_rptr = RREG32(DMA_RB_RPTR + DMA1_REGISTER_OFFSET);
 	rb_wptr = RREG32(DMA_RB_WPTR + DMA1_REGISTER_OFFSET);
-	dev_info(rdev->dev,
+	dev_err(rdev->dev,
 		 "  DMA1 RB rptr/wptr = 0x%08X/0x%08X (rptr=%u, wptr=%u dw)\n",
 		 rb_rptr, rb_wptr,
 		 (rb_rptr & 0x3fffc) >> 2, (rb_wptr & 0x3fffc) >> 2);
@@ -2144,7 +2157,7 @@ static void cayman_gpu_soft_reset(struct radeon_device *rdev, u32 reset_mask)
 	if (grbm_soft_reset) {
 		tmp = RREG32(GRBM_SOFT_RESET);
 		tmp |= grbm_soft_reset;
-		dev_info(rdev->dev, "GRBM_SOFT_RESET=0x%08X\n", tmp);
+		dev_err(rdev->dev, "GRBM_SOFT_RESET=0x%08X\n", tmp);
 		WREG32(GRBM_SOFT_RESET, tmp);
 		tmp = RREG32(GRBM_SOFT_RESET);
 
@@ -2158,7 +2171,7 @@ static void cayman_gpu_soft_reset(struct radeon_device *rdev, u32 reset_mask)
 	if (srbm_soft_reset) {
 		tmp = RREG32(SRBM_SOFT_RESET);
 		tmp |= srbm_soft_reset;
-		dev_info(rdev->dev, "SRBM_SOFT_RESET=0x%08X\n", tmp);
+		dev_err(rdev->dev, "SRBM_SOFT_RESET=0x%08X\n", tmp);
 		WREG32(SRBM_SOFT_RESET, tmp);
 		tmp = RREG32(SRBM_SOFT_RESET);
 

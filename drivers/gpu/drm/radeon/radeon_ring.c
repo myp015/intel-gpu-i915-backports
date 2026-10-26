@@ -345,7 +345,7 @@ static void radeon_forensics_dump_dma(struct radeon_device *rdev,
 				  ((u64)(data[i + 4] & 0xff) << 32);
 
 			/* 第 26 位：SI 的 5 参数宏用它表示按字节计数 */
-			dev_info(rdev->dev,
+			dev_err(rdev->dev,
 				 "  [%3u] DMA COPY dst=0x%010llx src=0x%010llx count=%u %s\n",
 				 i, dst, src, hdr & 0xfffff,
 				 (hdr & (1 << 26)) ? "bytes" : "dwords");
@@ -353,7 +353,7 @@ static void radeon_forensics_dump_dma(struct radeon_device *rdev,
 			u64 addr = (u64)(data[i + 1] & 0xffffffe0) |
 				   ((u64)(data[i + 2] & 0xff) << 32);
 
-			dev_info(rdev->dev,
+			dev_err(rdev->dev,
 				 "  [%3u] DMA IB addr=0x%010llx len=%u dw vmid=%u\n",
 				 i, addr, (data[i + 2] >> 12) & 0xfffff,
 				 (hdr >> 20) & 0xf);
@@ -361,15 +361,15 @@ static void radeon_forensics_dump_dma(struct radeon_device *rdev,
 			u64 dst = (u64)data[i + 1] |
 				  ((u64)(data[i + 2] & 0xff) << 32);
 
-			dev_info(rdev->dev,
+			dev_err(rdev->dev,
 				 "  [%3u] DMA WRITE dst=0x%010llx count=%u dwords\n",
 				 i, dst, hdr & 0xfffff);
 		} else if (op == 0x9 && len == 3) {
-			dev_info(rdev->dev,
+			dev_err(rdev->dev,
 				 "  [%3u] DMA SRBM_WRITE reg=0x%05x value=0x%08x\n",
 				 i, (data[i + 1] >> 2) & 0xffff, data[i + 2]);
 		} else {
-			dev_info(rdev->dev, "  [%3u] DMA %s header=0x%08x\n",
+			dev_err(rdev->dev, "  [%3u] DMA %s header=0x%08x\n",
 				 i, radeon_forensics_dma_op(op), hdr);
 		}
 		i += len;
@@ -392,7 +392,7 @@ static void radeon_forensics_dump_window(struct radeon_device *rdev,
 		for (j = 0; j < n; j++)
 			off += scnprintf(line + off, sizeof(line) - off,
 					 " %08x", data[i + j]);
-		dev_info(rdev->dev, "  %s[%04x]:%s\n", tag,
+		dev_err(rdev->dev, "  %s[%04x]:%s\n", tag,
 			 (start + i) & ring->ptr_mask, line);
 	}
 }
@@ -431,23 +431,23 @@ void radeon_ring_forensics(struct radeon_device *rdev, struct radeon_ring *ring)
 	ndw = (wptr - rptr) & ring->ptr_mask;
 	last = atomic64_read(&ring->last_activity);
 
-	dev_info(rdev->dev,
+	dev_err(rdev->dev,
 		 "ring %u forensics: wptr=%u hw_rptr=%u pending=%u dw fence=0x%016llx completed=0x%016llx fence_addr=0x%016llx (%s)\n",
 		 ring->idx, wptr, rptr, ndw, drv->sync_seq[ring->idx],
 		 (u64)atomic64_read(&drv->last_seq), drv->gpu_addr,
 		 drv->cpu_addr ? "wb" : "scratch");
 	if (last)
-		dev_info(rdev->dev, "  last ring progress %llums ago\n",
+		dev_err(rdev->dev, "  last ring progress %llums ago\n",
 			 (unsigned long long)jiffies_to_msecs(jiffies_64 - last));
 
 	if (!ndw) {
-		dev_info(rdev->dev, "  ring is empty (wptr == hw_rptr)\n");
+		dev_err(rdev->dev, "  ring is empty (wptr == hw_rptr)\n");
 		return;
 	}
 
 	dump_dw = ndw < RADEON_FORENSICS_MAX_DW ? ndw : RADEON_FORENSICS_MAX_DW;
 	if (dump_dw != ndw)
-		dev_info(rdev->dev,
+		dev_err(rdev->dev,
 			 "  showing first %u of %u pending dwords\n",
 			 dump_dw, ndw);
 
@@ -480,7 +480,7 @@ void radeon_ring_forensics_saved(struct radeon_device *rdev,
 	if (!data || !ndw)
 		return;
 
-	dev_info(rdev->dev, "ring %u: %u dwords pending at reset\n",
+	dev_err(rdev->dev, "ring %u: %u dwords pending at reset\n",
 		 ring->idx, ndw);
 	radeon_forensics_dump_window(rdev, "saved", ring, data, dump_dw, 0);
 	if (radeon_ring_is_dma_ring(ring))
