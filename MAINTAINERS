@@ -15645,7 +15645,7 @@ L:	linux-wireless@vger.kernel.org
 S:	Maintained
 F:	drivers/net/wireless/quantenna
 
-RADEON and AMDGPU DRM DRIVERS
+AMDGPU DRM DRIVERS
 M:	Alex Deucher <alexander.deucher@amd.com>
 M:	Christian König <christian.koenig@amd.com>
 M:	Pan, Xinhui <Xinhui.Pan@amd.com>
@@ -15653,18 +15653,8 @@ L:	amd-gfx@lists.freedesktop.org
 S:	Supported
 T:	git https://gitlab.freedesktop.org/agd5f/linux.git
 B:	https://gitlab.freedesktop.org/drm/amd/-/issues
-C:	irc://irc.oftc.net/radeon
 F:	drivers/gpu/drm/amd/
-F:	drivers/gpu/drm/radeon/
 F:	include/uapi/drm/amdgpu_drm.h
-F:	include/uapi/drm/radeon_drm.h
-
-RADEON FRAMEBUFFER DISPLAY DRIVER
-M:	Benjamin Herrenschmidt <benh@kernel.crashing.org>
-L:	linux-fbdev@vger.kernel.org
-S:	Maintained
-F:	drivers/video/fbdev/aty/radeon*
-F:	include/uapi/linux/radeonfb.h
 
 RADIOSHARK RADIO DRIVER
 M:	Hans Verkuil <hverkuil@xs4all.nl>
